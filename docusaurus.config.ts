@@ -56,6 +56,16 @@ const config: Config = {
     colorMode: {
       respectPrefersColorScheme: true,
     },
+    metadata: [
+      // Algolia DocSearch ownership verification — emitted as a <meta>
+      // tag on every page. Allows Algolia's verifier to confirm the
+      // domain is ours before activating live search. Safe to leave
+      // permanently; the tag is tiny and silent to end users.
+      {
+        name: 'algolia-site-verification',
+        content: '0B87228BA0B57BAF',
+      },
+    ],
     navbar: {
       title: 'CalKeep Docs',
       logo: {
