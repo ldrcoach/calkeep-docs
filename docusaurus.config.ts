@@ -51,6 +51,26 @@ const config: Config = {
     ],
   ],
 
+  // Local-search plugin — interim search until Algolia DocSearch is approved.
+  // Indexes content at build time and ships as a small JS bundle.
+  // When Algolia keys land, replace this with the `themeConfig.algolia`
+  // block at the bottom of this file (currently commented).
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        docsRouteBasePath: '/',
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
+
   themeConfig: {
     image: 'img/calkeep-social-card.png',
     colorMode: {
@@ -117,6 +137,19 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
+    // ----------------------------------------------------------------
+    // Algolia DocSearch — pending application approval.
+    // When Algolia delivers credentials by email, paste them here and
+    // remove the `themes:` local-search block higher up in this file.
+    //
+    // algolia: {
+    //   appId: 'YOUR_APP_ID',
+    //   apiKey: 'YOUR_SEARCH_ONLY_PUBLIC_API_KEY',
+    //   indexName: 'calkeep',
+    //   contextualSearch: true,
+    //   searchPagePath: 'search',
+    // },
+    // ----------------------------------------------------------------
   } satisfies Preset.ThemeConfig,
 };
 
