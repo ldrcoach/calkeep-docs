@@ -1,0 +1,43 @@
+/**
+ * CalKeep Docs theme overrides.
+ * Brand: blue primary (#1D4ED8, Tailwind blue-700), Inter font.
+ */
+
+:root {
+  --ifm-color-primary: #1d4ed8;
+  --ifm-color-primary-dark: #1a46c2;
+  --ifm-color-primary-darker: #1942b7;
+  --ifm-color-primary-darkest: #143697;
+  --ifm-color-primary-light: #3160dc;
+  --ifm-color-primary-lighter: #3d6adf;
+  --ifm-color-primary-lightest: #6587e6;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-font-family-base:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif;
+  --ifm-heading-font-weight: 700;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #6587e6;
+  --ifm-color-primary-dark: #4470e0;
+  --ifm-color-primary-darker: #3464dc;
+  --ifm-color-primary-darkest: #2451c5;
+  --ifm-color-primary-light: #889eec;
+  --ifm-color-primary-lighter: #99adef;
+  --ifm-color-primary-lightest: #c5d0f5;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* Slightly tighter, more product-doc-y vibe */
+.markdown h1 {
+  font-size: 2.25rem;
+}
+.markdown h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+}
+.markdown h3 {
+  font-size: 1.15rem;
+}
