@@ -18,7 +18,7 @@ Yes. In Azure Marketplace, find your CalKeep subscription and update the plan or
 
 ### What happens when I cancel?
 
-Your workspace plan reverts to **CalKeep FREE** immediately. **All your data is preserved** — calendar connections, contacts, tasks, booking pages. Features that require PRO or BUSINESS become inaccessible, but the data behind them is still there if you reinstate.
+Your workspace plan reverts to **CalKeep FREE** immediately. **All your data is preserved** — calendar connections, contacts, tasks, booking pages. Features that require a paid plan become inaccessible, but the data behind them is still there if you reinstate.
 
 ### Can I try CalKeep before paying?
 

@@ -10,7 +10,7 @@ If you're reading this, you just signed up for CalKeep — likely through Azure 
 
 ## What just happened
 
-You bought seats of CalKeep PRO or BUSINESS through Microsoft Azure Marketplace. That purchase will show up on your Azure invoice — CalKeep's billing runs entirely through Microsoft. You won't need to enter a credit card anywhere in CalKeep itself.
+You signed up for CalKeep through Microsoft Azure Marketplace. Your subscription appears on your Azure invoice — CalKeep's billing runs entirely through Microsoft. You won't need to enter a credit card anywhere in CalKeep itself.
 
 Before anyone on your team can use the product, you need to complete one quick activation step. It takes about two minutes.
 
@@ -118,7 +118,7 @@ If you cancel your CalKeep subscription through Azure Marketplace:
 
 - Your workspace plan reverts to **CalKeep FREE** immediately when the cancellation webhook arrives.
 - All your data is preserved — calendar connections, booking pages, contacts, tasks, everything. Nothing is deleted.
-- Features that require PRO or BUSINESS become inaccessible, but the data behind them is still there.
+- Features that require a paid plan become inaccessible, but the data behind them is still there.
 - If you reinstate the subscription through Azure Marketplace, the plan is restored and you're back to full access.
 
 If you ever need help with data export or account closure, contact us at [support@calkeep.com](mailto:support@calkeep.com). Full workspace deletion is currently handled through support rather than an in-app button.
