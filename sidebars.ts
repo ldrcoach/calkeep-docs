@@ -24,6 +24,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'admin/team-management',
+        'admin/team-calendar-visibility',
         'admin/security',
         'admin/branding',
         'admin/platform-automation',

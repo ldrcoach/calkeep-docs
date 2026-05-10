@@ -46,6 +46,19 @@ You can connect any combination — CalKeep syncs them all into one unified view
 
 Only when you ask it to. Creating an event in CalKeep writes to whichever calendar you targeted, and can mirror to other connected calendars based on rules you control.
 
+### Can managers see private calendar event details?
+
+Not by default. CalKeep can use connected calendars for availability blocking
+and conflict checks without making every private event title, note, attendee
+list, or location manager-visible. For setup guidance, see
+[Team calendar visibility and privacy](/admin/team-calendar-visibility).
+
+### Can a sales team use Outlook and Google calendars together?
+
+Yes. CalKeep supports Microsoft Outlook, Google Calendar, iCloud, and Yahoo
+calendars in the same workspace. This helps teams coordinate availability even
+when reps use different calendar providers.
+
 ---
 
 ## Bookings

@@ -20,6 +20,10 @@ Go to **Settings → Team**. There are several invite paths — pick what fits:
 
 For the full setup walkthrough, see [Getting started → Step 3](/getting-started#step-3-onboard-your-team).
 
+If you are setting up a sales or client-service team and need manager visibility
+without exposing private calendar details, see
+[Team calendar visibility and privacy](/admin/team-calendar-visibility).
+
 ## Roles
 
 CalKeep has two workspace roles:

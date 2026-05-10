@@ -16,12 +16,13 @@ These docs are for **workspace admins and end users** who want to set up CalKeep
 
 - **[Getting started](/getting-started)** — what to do in your first 10 minutes after signing up. Best for new admins who just activated a workspace.
 - **[Connect calendars](/integrations/google-calendar)** — link Google, Outlook, iCloud, or Yahoo. Two-way sync across all of them.
-- **[Admin guide](/admin/team-management)** — invite teammates, configure security, customize branding.
+- **[Admin guide](/admin/team-management)** — invite teammates, coordinate team visibility, configure security, customize branding.
 - **[FAQ](/faq)** — quick answers to the most-asked questions.
 
 ## Platform and support topics
 
 - **[Platform automation](/admin/platform-automation)** - API tokens, signed webhooks, CSV exports, and guarded import.
+- **[Team visibility and privacy](/admin/team-calendar-visibility)** - coordinate availability without exposing every private calendar detail.
 - **[FAQ](/faq)** - activation, cancellation, seat quantity, support, data export, and workspace deletion questions.
 
 ## What CalKeep does
