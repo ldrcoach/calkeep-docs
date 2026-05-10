@@ -34,6 +34,10 @@ is live on `docs.calkeep.com`. The committed key is the public, read-only
 DocSearch key for browser queries. Do not commit Algolia admin keys, write keys,
 crawler secrets, or dashboard credentials.
 
+Docs publish from `main` immediately, but Algolia DocSearch recrawls on its own
+schedule. Search results can lag behind newly merged content until the next
+crawl completes.
+
 ## License
 
 Documentation content is © CalKeep. Code in this repo (config + workflows) is MIT.
