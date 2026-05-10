@@ -22,9 +22,17 @@ Pages live in `docs/` as plain Markdown (with optional MDX). The sidebar order i
 ## Stack
 
 - [Docusaurus 3](https://docusaurus.io/) on the classic preset
+- Algolia DocSearch for live docs search at `docs.calkeep.com`
 - TypeScript config
 - Hosted on GitHub Pages with a custom domain via CNAME
 - Deployed by GitHub Actions on every push to `main`
+
+## Search
+
+Search is configured in `docusaurus.config.ts` under `themeConfig.algolia` and
+is live on `docs.calkeep.com`. The committed key is the public, read-only
+DocSearch key for browser queries. Do not commit Algolia admin keys, write keys,
+crawler secrets, or dashboard credentials.
 
 ## License
 
