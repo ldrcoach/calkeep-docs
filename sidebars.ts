@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
         'admin/team-management',
         'admin/security',
         'admin/branding',
+        'admin/platform-automation',
       ],
     },
     'faq',

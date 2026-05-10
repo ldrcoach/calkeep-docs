@@ -19,6 +19,11 @@ These docs are for **workspace admins and end users** who want to set up CalKeep
 - **[Admin guide](/admin/team-management)** — invite teammates, configure security, customize branding.
 - **[FAQ](/faq)** — quick answers to the most-asked questions.
 
+## Platform and support topics
+
+- **[Platform automation](/admin/platform-automation)** - API tokens, signed webhooks, CSV exports, and guarded import.
+- **[FAQ](/faq)** - activation, cancellation, seat quantity, support, data export, and workspace deletion questions.
+
 ## What CalKeep does
 
 | Capability | What it gives you |

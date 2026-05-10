@@ -85,6 +85,44 @@ Compliance attestations are on the roadmap as we scale. If your organization nee
 
 ---
 
+## Marketplace activation and ownership
+
+### What if my activation link expired or was already used?
+
+Return to Azure Portal -> Marketplace -> SaaS subscriptions, open the CalKeep subscription, and choose **Configure account** to restart the activation handoff. If the activation page still reports an expired, already-used, or invalid token, email [support@calkeep.com](mailto:support@calkeep.com) with the purchaser email and approximate purchase time.
+
+### Who controls billing versus workspace administration?
+
+The **Azure billing owner** controls the Marketplace subscription, plan, cancellation, and seat quantity in Azure. A **CalKeep workspace admin** controls product setup inside CalKeep: team members, connected calendars, branding, security settings, and day-to-day workspace configuration. The same person can hold both roles, but they do not have to.
+
+If a workspace admin needs more seats, the billing owner updates the quantity in Azure Marketplace. CalKeep then receives the change and updates the workspace seat ceiling.
+
+### What if my Azure subscription is suspended or canceled?
+
+If Azure reports a suspended or canceled subscription, CalKeep restricts paid-plan features according to the subscription state. Your workspace data is preserved. If you reinstate or update the Marketplace subscription, CalKeep restores the matching entitlement after the Microsoft webhook arrives.
+
+---
+
+## Data and automation
+
+### Does CalKeep have an API or webhooks?
+
+Yes. Business and Enterprise workspaces have access to scoped API tokens, versioned API endpoints, signed outbound webhooks, and delivery logs. See [Platform automation](/admin/platform-automation) for the public overview.
+
+### Can I export my data?
+
+Yes. Calendar data can be exported in ICS format, contacts can be exported in CSV or vCard format, and Business/Enterprise workspaces have CSV export coverage for supported operational data. Email [support@calkeep.com](mailto:support@calkeep.com) if you need help with a larger portability or compliance request.
+
+### How do I delete a workspace or close an account?
+
+Full workspace deletion and account closure are currently operator-assisted. Email [support@calkeep.com](mailto:support@calkeep.com) from a workspace admin or owner address and include the workspace name. Support will confirm authority, explain retention and backups, and coordinate the deletion.
+
+### How do I report a security issue?
+
+Email [security@calkeep.com](mailto:security@calkeep.com). PGP key is available on request.
+
+---
+
 ## Support
 
 ### How do I reach support?
