@@ -2,7 +2,7 @@ name: Deploy CalKeep Docs
 
 on:
   push:
-    branches: [main]
+    branches: [release/v1.2]
   workflow_dispatch:
 
 permissions:
