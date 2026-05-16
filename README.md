@@ -25,18 +25,17 @@ Pages live in `docs/` as plain Markdown (with optional MDX). The sidebar order i
 - Algolia DocSearch for live docs search at `docs.calkeep.com`
 - TypeScript config
 - Hosted on GitHub Pages with a custom domain via CNAME
-- Deployed by GitHub Actions on every push to `release/v1.2`
+- Deployed by GitHub Actions on every push to `main`
 
 ## Publishing model
 
-Production docs are published from `release/v1.2`, matching the current
-CalKeep production application lane. Keep that branch aligned with live
-customer-facing behavior.
+Production docs are published from `main`, matching the current CalKeep V2
+production application lane. Keep that branch aligned with live customer-facing
+behavior.
 
-Use `main` and feature branches for future documentation work, including V2
-drafts, unreleased features, and larger edits that should not appear on
-`docs.calkeep.com` yet. Promote only production-accurate changes into
-`release/v1.2`.
+Use feature branches for future documentation work, including drafts,
+unreleased features, and larger edits that should not appear on
+`docs.calkeep.com` yet. Promote only production-accurate changes into `main`.
 
 ## Search
 
@@ -45,9 +44,9 @@ is live on `docs.calkeep.com`. The committed key is the public, read-only
 DocSearch key for browser queries. Do not commit Algolia admin keys, write keys,
 crawler secrets, or dashboard credentials.
 
-Docs publish from `release/v1.2` immediately, but Algolia DocSearch recrawls on
-its own schedule. Search results can lag behind newly merged content until the
-next crawl completes.
+Docs publish from `main` immediately, but Algolia DocSearch recrawls on its own
+schedule. Search results can lag behind newly merged content until the next
+crawl completes.
 
 ## License
 
