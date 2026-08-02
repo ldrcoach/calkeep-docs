@@ -224,9 +224,9 @@ Review at **Settings → Audit Log**.
 
 - Webhook signature versioning beyond `v1` — additional algorithms ship
   if industry practice shifts.
-- Custom event types from app-defined triggers — V2 candidate.
+- Custom event types from app-defined triggers.
 - Per-event filtering (e.g., "only `booking.created` for booking pages
-  matching X") — V2 candidate.
+  matching X").
 - Bulk batch deliveries — events fire individually today.
 
 For the integration overview, see

@@ -86,12 +86,13 @@ plan is restored.
 
 ## Programmatic access
 
-Opportunity-specific API and webhook coverage is on the V1.2 roadmap.
-Today, the contact and task surfaces (see [API tokens](/admin/api))
-cover most pipeline-adjacent automation needs through their links.
+Opportunity automation is part of the current versioned API surface. Use
+API tokens with `opportunities:read` or `opportunities:write` against
+`/api/v2/opportunities`, and use outbound webhooks from the Integration
+Center for lifecycle automation.
 
-For workspaces that need full CRM data export, the contact CSV export
-and booking CSV (planned) are the workspace-portable artifacts.
+For workspaces that need portable data, use the supported contact and
+booking exports from the admin export surfaces.
 
 ## Buyer-facing positioning
 

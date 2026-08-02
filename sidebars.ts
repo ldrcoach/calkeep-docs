@@ -51,6 +51,7 @@ const sidebars: SidebarsConfig = {
         'admin/ai-provider',
       ],
     },
+    'release-posture',
     'faq',
   ],
 };

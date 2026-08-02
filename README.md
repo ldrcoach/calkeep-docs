@@ -29,9 +29,9 @@ Pages live in `docs/` as plain Markdown (with optional MDX). The sidebar order i
 
 ## Publishing model
 
-Production docs are published from `main`, matching the current CalKeep V2
-production application lane. Keep that branch aligned with live customer-facing
-behavior.
+Production docs are published from `main`, matching the current public CalKeep
+release. Keep that branch aligned with live customer-facing behavior every time
+the platform increments.
 
 Use feature branches for future documentation work, including drafts,
 unreleased features, and larger edits that should not appear on
