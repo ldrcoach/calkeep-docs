@@ -20,7 +20,7 @@ CalKeep's own brand never appears on customer-facing surfaces if you customize. 
 
 ## Configure
 
-Go to **Settings → Branding**.
+Go to **Admin Hub → Workspace management → Branding**.
 
 | Field | What it does |
 |---|---|
@@ -48,7 +48,7 @@ If you want fine-grained control, drop CSS into the **Custom CSS** field. CalKee
 
 ## Logo library
 
-Upload multiple logos to **Settings → Branding → Logo library** and pick which one is active. Useful if you maintain seasonal variants or A/B testing.
+Upload multiple logos to **Admin Hub → Workspace management → Branding → Logo library** and pick which one is active. Useful if you maintain seasonal variants or A/B testing.
 
 ## Booking-page-level overrides
 

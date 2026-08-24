@@ -106,15 +106,16 @@ pair of eyes.
 
 ### Schedule a task to your calendar
 
-Click **Schedule** on a task to create a real calendar event for it. The
-event is created on the calendar you select, mirrored to other connected
-calendars per your role rules, and linked back to the task via
-`sourceTaskId`.
+Click **Schedule** on a task to create a calendar event for it. Provider
+creation requires effective write authority on the exact target collection;
+mirroring likewise requires write authority on each linked collection.
+Read-only subscribed links and imported snapshots never receive writes. The
+CalKeep event remains linked to the task through `sourceTaskId`.
 
-Title and description changes on a scheduled task propagate to the linked
-calendar event. Due-date changes on the task do **not** automatically
-move the calendar event — scheduling is your plan, not an echo of the
-due date.
+Title and description changes on a scheduled task propagate to a linked
+provider event only while that collection still has effective write authority.
+Due-date changes on the task do **not** automatically move the calendar event —
+scheduling is your plan, not an echo of the due date.
 
 If the linked calendar event is deleted from a connected provider,
 CalKeep detects this during sync and unlinks the task — it doesn't
@@ -212,13 +213,15 @@ The **Tasks** page supports several filter views:
 
 ## Programmatic access
 
-The `tasks:read` and `tasks:write` token scopes are defined and can be
-selected when issuing an API token, but the underlying `/api/v1/tasks`
-endpoints are still under construction. Watch [API tokens](/admin/api)
-for the resource-coverage table that reflects what's live.
+Existing Business and Enterprise tokens with `tasks:read` can use the
+documented read-only `/api/v2/tasks` family. New token issuance is temporarily
+paused. CalKeep does not currently issue a `tasks:write` scope, and generic
+`/api/v2` writes are rejected. See [API tokens](/admin/api) for the current
+status and resource table.
 
-`task.created` and `task.completed` webhooks fire on commit and can be
-subscribed to today. See [Webhooks](/admin/webhooks).
+Task webhook labels are not part of the current production delivery contract.
+Use the read-only API projection and reconcile changes until task emitters are
+released. See [Webhooks](/admin/webhooks) for the delivered event catalog.
 
 ## Buyer-facing positioning
 

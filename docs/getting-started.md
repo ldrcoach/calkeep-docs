@@ -28,54 +28,87 @@ After you completed the purchase, Microsoft showed you a "Configure your new sof
 
 ---
 
-## Step 2: Set up your workspace branding (optional, but nice)
+## Step 2: Orient your account
 
-CalKeep lets you put your company name, logo, and colors on booking pages, confirmation emails, and invite links. Your customers and teammates see your branding, not ours.
+The first-visit **Screen Guide** explains the current screen and its primary
+actions. You can reopen it later from **Screen Guide** without losing your
+place.
 
-Go to **Settings → Branding** (in the left sidebar). You can:
-
-- Upload your logo
-- Set a primary color
-- Add a display name and tagline
-
-Changes show up immediately on any booking page you share externally. We'd suggest doing this before you invite the team, so when they land on your booking page it already looks like yours.
-
-See [Branding](/admin/branding) for the full feature reference.
+Open **Personal Settings** for the account-readiness guide. It links directly
+to profile details, calendar setup, appearance and notifications, reminders,
+and password/security work. Multi-factor enrollment is under **Personal
+Settings → Multi-Factor Authentication**. Each section loads independently, so
+an unavailable read is not shown as a saved default.
 
 ---
 
-## Step 3: Onboard your team
+## Step 3: Connect the sources you want
 
-You bought seats for your team — let's fill them. There are four ways to bring people in. We recommend them in this order:
+Open **Calendar Connections**, choose Google or Microsoft, and select the
+source types you want CalKeep to request **before** leaving for provider
+authorization:
 
-### Option A: Sign in with Microsoft (fastest for most teams)
+- Calendars
+- Contacts
+- Tasks
 
-Your colleagues don't need an invitation. Just send them this link:
+Any requestable non-empty combination is valid; you do not have to select a
+calendar. CalKeep then shows a separate access review. Requested, provider-
+granted, discovered, and enabled are different states: a provider denial stays
+“requested but not granted,” and a capability this deployment cannot request
+is “unavailable,” not a choice you made.
 
-```
-https://calkeep.com/login?ws=YOUR-WORKSPACE-SLUG
-```
+After authorization, review the discovered calendars, contact books, and task
+lists. New calendars are inactive until you decide how to use them. Contact
+books and task lists start with sync and writeback off. Provider permission or
+discovery alone never enables synchronization, writeback, or delete-at-source.
 
-Replace `YOUR-WORKSPACE-SLUG` with your workspace's slug — you can find it in **Settings → Workspace**. They click **Sign in with Microsoft**, use their work Microsoft account, and land inside your workspace.
+New iCloud and Yahoo app-password onboarding is currently paused. See
+[iCloud and Yahoo](/integrations/icloud-and-yahoo) for the read-only link and
+file-snapshot alternatives.
 
-This is the fastest path for anyone who already has Microsoft 365. There's nothing to pre-approve on your end.
+---
 
-### Option B: Domain auto-join (best for onboarding everyone with `@yourcompany.com`)
+## Step 4: Set up workspace branding (optional, but nice)
+
+CalKeep lets you put your company name, logo, and colors on booking pages,
+confirmation emails, and invite links. Go to **Admin Hub → Workspace
+management → Branding** to upload a logo, choose colors, and set identity copy.
+
+Draft changes update the local preview. Customer-facing pages change only after
+**Save** succeeds. See [Branding](/admin/branding) for the full reference.
+
+---
+
+## Step 5: Onboard your team
+
+You bought seats for your team — let's fill them. A person joins the intended
+workspace through an invitation, an invite link, or a verified domain
+auto-join policy. Direct Microsoft sign-in is suitable for an existing member
+or someone covered by verified domain auto-join; a workspace-branded login link
+does not by itself grant membership.
+
+### Option A: Domain auto-join (best for onboarding everyone with `@yourcompany.com`)
 
 If your whole team has the same email domain, you can set things up so anyone who signs in with a `@yourcompany.com` Microsoft account automatically joins your workspace.
 
-Go to **Settings → Team → Domain auto-join**:
+Go to **Admin Hub → Workspace management → Team members → Domain auto-join**:
 
 1. Type your company domain (e.g., `yourcompany.com`) and click **Add domain**.
 2. CalKeep generates a DNS TXT record challenge — it looks like `calkeep-domain-verify=abc123`. Add that TXT record at the apex of your domain (`yourcompany.com`, not a subdomain). Your DNS provider (GoDaddy, Cloudflare, Route 53, etc.) is where you do this.
 3. Once the record is live (usually a few minutes, sometimes up to an hour for propagation), click **Verify** in CalKeep.
-4. After verification, any new Microsoft signin from `@yourcompany.com` will auto-join as a regular user.
+4. Choose the auto-join role. We recommend **user** unless every new person at
+   the verified domain should administer the workspace. After verification, a
+   new Microsoft sign-in from `@yourcompany.com` joins with that configured
+   role.
 
 People who registered at your domain before you enabled auto-join are not retroactively pulled into your workspace — auto-join only catches new sign-ins after verification.
 
-### Option C: M365 directory picker (for admins who want to select specific people)
+### Option B: M365 directory picker (for admins who want to select specific people)
 
-If you want to hand-pick teammates from your Microsoft 365 tenant, go to **Settings → Team**, scroll to the **Invite from Microsoft 365** section, and click **Connect Microsoft 365 Directory**.
+If you want to hand-pick teammates from your Microsoft 365 tenant, go to
+**Admin Hub → Workspace management → Team members**, find **Invite from Microsoft
+365**, and click **Connect Microsoft 365 Directory**.
 
 You'll be asked to authorize CalKeep to read your tenant's user list (just read-only, just names and email addresses — no calendar data, no messages). Once you authorize:
 
@@ -85,34 +118,48 @@ You'll be asked to authorize CalKeep to read your tenant's user list (just read-
 
 You only need to authorize once. The connection stays active so you can come back and invite more people later.
 
-### Option D: Invite link, magic-link login, or CSV paste (fallback options)
+### Option C: Invite link, magic-link login, or CSV paste (fallback options)
 
 If the Microsoft-based paths don't work for your situation:
 
-**Invite link:** Go to **Settings → Team → Invite Links**. Generate a shareable link you can drop in Slack, Teams, or email. Anyone who clicks it and signs in will join your workspace. You can set an expiry date, a max number of uses, or restrict it to a specific email domain.
+**Invite link:** Go to **Admin Hub → Workspace management → Team members → Invite
+Links**. Generate a shareable link you can drop in Slack, Teams, or email. You
+can set an expiry date, a max number of uses, or restrict it to a specific email
+domain.
 
-**Magic-link login:** Anyone can go to `https://calkeep.com/login`, enter their work email, and click "Email me a sign-in link." They get a single-use link in their inbox — no password needed. Works for people who don't use Microsoft 365.
+**Magic-link login:** After a person has joined through an invitation, invite
+link, or verified auto-join policy, they can enter their work email at
+`https://calkeep.com/login` and choose **Email me a sign-in link**. The
+single-use link authenticates that member without a password; it does not place
+an unknown email into a workspace.
 
-**CSV bulk invite:** Go to **Settings → Team** and use the **Bulk invite** option. Paste a CSV (or list) of email addresses, assign roles, and send. Each person gets a standard invitation email.
+**CSV bulk invite:** Go to **Admin Hub → Workspace management → Team members** and
+use **Bulk invite**. Paste a CSV (or list) of email addresses, assign roles, and
+send. Each person gets a standard invitation email.
 
 For more on managing the team after onboarding, see [Team management](/admin/team-management).
 
 ---
 
-## Step 4: What you can do as the workspace owner
+## Step 6: Use the Admin Hub
 
 As the person who activated the subscription, you're the workspace admin. That means:
 
-- **Manage team members** — invite, remove, and set roles (user or admin) from Settings → Team
+- **Manage team members** — invite, remove, and set roles from **Admin Hub → Workspace management → Team members**.
 - **See seat usage** — the Team settings page shows how many of your purchased seats are in use. If you need more seats, go back to your Azure Marketplace subscription and update the quantity there.
-- **Connect your calendar** — go to Settings → Connected Accounts to link your Google, Outlook, iCloud, or Yahoo calendar. CalKeep syncs events across all of them.
+- **Review source setup** — return to **Calendar Connections** to distinguish provider access, discovery, activation, synchronization, and writeback.
 - **Create booking pages** — go to Booking Pages to set up a publicly shareable scheduling link. Useful for sales calls, interviews, or anything where you want someone to pick a time without the back-and-forth.
-- **Set up branding** — Settings → Branding (already covered above).
-- **Configure security** — Settings → Security to manage MFA, passkeys, and trusted devices.
+- **Set up branding** — use **Admin Hub → Workspace management → Branding**.
+- **Configure workspace security** — use **Admin Hub → Security & identity**. Personal MFA and passkeys remain in **Personal Settings**.
+
+The Admin Hub groups **Workspace management**, **Security & identity**, and
+**Integrations & services**. An available control is not proof that its service
+is configured or healthy. [Read the Admin Hub guide](/admin/admin-hub) before
+turning on identity or integration controls.
 
 ---
 
-## Step 5: What happens if you cancel
+## Step 7: What happens if you cancel
 
 If you cancel your CalKeep subscription through Azure Marketplace:
 
@@ -127,7 +174,13 @@ If you ever need help with data export or account closure, contact us at [suppor
 
 ## Getting help
 
-- **In-product help center:** click the question mark icon in the sidebar for the FAQ and a contact form that routes to our team.
+- **Help & Support:** use the sidebar for recovery-first guidance, FAQ, and
+  support contact. Calendar, sync, and account problems link back to their exact
+  review screens without silently changing a connection.
+- **Diagnostic preview:** when support needs context, you can assemble a
+  redacted diagnostic summary and review it before submitting. Secrets,
+  provider payloads, private event details, and unnecessary personal data are
+  excluded; previewing does not store or send it.
 - **Email:** [support@calkeep.com](mailto:support@calkeep.com)
 - **Privacy policy:** [calkeep.com/privacy](https://calkeep.com/privacy)
 - **Terms:** [calkeep.com/terms](https://calkeep.com/terms)

@@ -6,9 +6,10 @@ description: Workspace contacts, import/export, AI cleanup, sharing, and follow-
 
 # Contacts
 
-Contacts are CalKeep's lightweight CRM. Every booking auto-creates or
-matches a contact, every connected calendar provider's contacts can sync
-in, and every follow-up task can attach to a contact.
+Contacts are CalKeep's lightweight CRM. Every booking auto-creates or matches a
+contact, reviewed Google and Microsoft contact books can sync after Contacts
+access is requested, provider-granted, discovered, and explicitly enabled, and
+every follow-up task can attach to a contact.
 
 Manage at **People** in the sidebar.
 
@@ -17,7 +18,7 @@ Manage at **People** in the sidebar.
 | Source | Behavior |
 |---|---|
 | **Bookings** | Each booking auto-creates a contact (or matches an existing one by email) so follow-up has a home. |
-| **Provider sync** | Google and Microsoft contacts sync in if you grant the contacts scope when connecting the account. iCloud and Yahoo (CalDAV) don't expose contacts the same way. |
+| **Provider contact book** | Google and Microsoft contact books become reviewable only when Contacts was requested, the provider granted access, and discovery succeeded. Every newly discovered book starts with sync, writeback, and delete-at-source off. |
 | **Manual create** | Add a contact directly from **People → New contact**. |
 | **CSV / vCard import** | Bulk-import from a file. See [Import](#import). |
 | **Public API** | `POST /api/v1/contacts` (Business+ tier). See [API tokens](/admin/api). |
@@ -92,9 +93,10 @@ applying.
 
 ### Phase 1 — Per-contact AI cleanup
 
-For genuinely-ambiguous cases, an LLM proposes specific changes per contact.
-By default this uses the platform Anthropic Claude provider; Business+
-workspaces can bring their own key. See [AI provider](/admin/ai-provider).
+For genuinely ambiguous cases, the workspace's current effective AI runtime
+proposes specific changes per contact. The saved source and effective runtime
+can differ when a provider is unavailable. Business+ workspaces can configure
+their own provider credentials. See [AI provider](/admin/ai-provider).
 
 Every operation creates a `DedupOperation` record. **Every change is
 reversible per record** — one click to revert.
@@ -105,15 +107,22 @@ retry-failed contacts at any time.
 For the buyer-facing positioning, see
 [AI calendar and contact cleanup](https://calkeep.com/solutions/ai-calendar-cleanup).
 
-## Junk contact handling
+## Junk contact handling and provider safety
 
-Contacts with **no email AND no phone** (typically Outlook directory
-stubs that synced in by mistake) are deleted from the provider during
-sync — not just hidden in CalKeep. This stops them from re-importing on
-the next poll cycle.
+CalKeep can flag low-information contacts, including records with no email and
+no phone, for cleanup. Cleanup removes the **CalKeep copy by default**. Provider
+discovery alone never enables contact sync, writeback, or deletion.
 
-If you want to preserve a contact that has neither email nor phone, add at
-least one of those fields manually before the next sync.
+Deleting the backing provider contact is possible only when the exact contact
+book supports provider writes, the provider currently grants the required
+contact-write access, the source owner or a workspace administrator has
+explicitly enabled writeback for that book, and **delete at source** is
+separately enabled. The reviewed delete still offers a local-only choice even
+when source deletion is armed.
+
+If those conditions are not all true, deletion remains local to CalKeep. This
+read-only-by-default boundary prevents a cleanup rule, import, or ordinary
+workspace edit from silently deleting a Google or Microsoft contact.
 
 ## Sharing
 
@@ -164,6 +173,7 @@ PATCH  /api/v1/contacts/:id
 See [API tokens](/admin/api) for authentication and the full resource
 list.
 
-The `contact.created` and `contact.updated` webhooks fire on commit so
-your CRM, support tool, or marketing automation system can stay in sync.
-See [Webhooks](/admin/webhooks).
+The `contact.created` and `contact.updated` webhooks are emitted after
+successful public API V1 contact create and patch operations. They are not a
+complete stream of manual, imported, or booking-created contact changes. See
+[Webhooks](/admin/webhooks).

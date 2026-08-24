@@ -1,14 +1,16 @@
 ---
 title: API tokens
 sidebar_position: 7
-description: Issue scoped API tokens against CalKeep's versioned public API. Business and Enterprise tiers.
+description: Use workspace-scoped API tokens with CalKeep's versioned public API. Business and Enterprise tiers.
 ---
 
 # API tokens
 
-CalKeep exposes a versioned public API at `/api/v1` for server-to-server
-integrations. Workspace admins on **Business** and **Enterprise** plans can
-issue scoped API tokens.
+CalKeep exposes versioned public `/api/v1` and `/api/v2` routes for
+server-to-server integrations. Existing workspace-scoped tokens remain usable
+on **Business** and **Enterprise** plans. New token issuance in the current
+Integration Center is temporarily paused while its request contract is aligned
+with the server validator.
 
 For the buyer-facing positioning, see
 [Wire CalKeep into the rest of your stack](https://calkeep.com/solutions/scheduling-automation-platform).
@@ -20,19 +22,21 @@ Companion surface: [Webhooks](/admin/webhooks).
 | Plan | API tokens | Rate limits |
 |---|---|---|
 | Free / Pro | Not available | — |
-| **Business** | Available | Standard |
-| **Enterprise** | Available | Higher limits |
+| **Business** | Existing-token access; new UI issuance temporarily paused | Shared runtime limits |
+| **Enterprise** | Existing-token access; new UI issuance temporarily paused | Shared runtime limits |
 
 ## Versioning
 
-The public API is versioned at `/api/v1`. Earlier app routes
-(everything not under `/api/v1`) are internal — they back the web/mobile
-UI and don't carry stability guarantees. Build integrations against
-`/api/v1` only.
+Use `/api/v1` for the validated contact write workflow and the existing V1
+workspace, contact, and booking reads. Use the documented `/api/v2` object
+families for read-only projections across the wider workspace object graph.
+Routes outside the documented versioned public API back CalKeep's own clients
+and do not carry a public stability guarantee.
 
 ## Authentication
 
-Bearer-token authentication on every `/api/v1/*` request:
+Bearer-token authentication applies to documented `/api/v1/*` and `/api/v2/*`
+requests:
 
 ```
 Authorization: Bearer <token>
@@ -42,93 +46,109 @@ Tokens are workspace-scoped: a token issued in workspace A cannot read
 or write data in workspace B. CalKeep enforces this at the auth boundary
 **and** re-checks at the repository layer.
 
-## Issue a token
+## Issuance status
 
-**Settings → Workspace Admin → Integrations → API tokens → Generate token.**
-(Admin role + recent MFA required.)
+The current **Admin Hub → Integrations & services → Integration Center → API
+tokens** screen can inventory and revoke existing tokens, but its **Create
+token** request is temporarily unavailable. Do not repeatedly submit the create
+dialog. Existing valid tokens continue to authenticate normally; contact
+[support](mailto:support@calkeep.com) if an urgent credential replacement is
+required before the repaired flow is released.
 
-You'll be asked for:
-
-- A friendly **label** (e.g., "RevOps Zapier integration").
-- A scope set (see below).
-- Optional **expiration** (no expiration means the token lives until
-  revoked).
-
-After saving, CalKeep shows the token **once**. Save it immediately —
-there's no way to read it back later. CalKeep stores only a hash plus a
-short display prefix.
+The repaired one-time issuance flow will ask for a name, purpose, integration
+owner, optional human owner, and scope set. The bearer is displayed only in the
+acknowledged issuance/recovery flow. Routine inventory exposes metadata and a
+short prefix, never the bearer value.
 
 ## Scopes
 
-A token carries one or more scopes. The available scopes are:
+When issuance is restored, a new token can carry one or more of these supported
+scopes:
 
 | Scope | Permits |
 |---|---|
-| `workspace:read` | Read workspace metadata. |
 | `contacts:read` | List and read contacts. |
-| `contacts:write` | Create and patch contacts. |
+| `contacts:write` | Create and patch contacts through the validated V1 workflow. |
+| `accounts:read` | Read CRM account projections. |
+| `opportunities:read` | Read opportunity projections. |
 | `bookings:read` | List and read bookings. |
+| `calendar_events:read` | Read calendar-event projections. |
 | `tasks:read` | List and read tasks. |
-| `tasks:write` | Create and update tasks. |
-| `reminders:read` | List reminders. |
-| `reminders:write` | Create reminders. |
-| `calendar_health:read` | Read connected-account sync health. |
+| `projects:read` | Read project projections. |
+| `processes:read` | Read process and process-run projections. |
+| `webhooks:read` | Read webhook-subscription projections. |
+| `integrations:read` | Read workspace metadata and provider-integration projections. |
 
-Scope checks happen at request time — a `contacts:read` token cannot
-hit `POST /contacts`. Tokens are workspace-scoped on top of scopes.
+Scope checks happen at request time. Except for the validated V1 contact
+create/patch routes, the generic V2 families are read-only even if an older
+persisted token contains a historical write-scope name. Tokens are
+workspace-scoped on top of scopes.
 
 ## Rotate a token
 
-Best practice: rotate annually or after any team-membership change for
-the user who owns the integration.
+Token rotation is create-new, verify-new, then revoke-old; it is not a distinct
+rotation endpoint. Because new UI issuance is temporarily paused, do not revoke
+a working token until a replacement is available. Contact support for an
+urgent security rotation.
 
-1. Generate a new token.
+Once issuance is restored:
+
+1. Create a new token.
 2. Update your integration's stored credential.
 3. Verify the integration is healthy (most integrations have a
    self-test / ping).
 4. Revoke the old token.
 
+If the new-token response is interrupted, retry that exact command before
+starting another rotation. The one-time recovery flow can return the same
+replacement credential instead of silently adding another active token.
+
 ## Revoke a token
 
-**Settings → Workspace Admin → Integrations → API tokens → [token] →
+**Admin Hub → Integrations & services → Integration Center → API tokens → [token] →
 Revoke.**
 
-Revocation is immediate. The token row is preserved (soft-deleted) for
-audit; further requests with that token authenticate fail.
+Revocation is immediate. CalKeep stamps who revoked the token and when, keeps
+the record for audit, and omits it from the default active inventory. Further
+requests with that token fail authentication.
 
 ## Resource coverage
 
-### Available today
+### V1 routes
 
 | Resource | Endpoint | Scope |
 |---|---|---|
-| **Workspace** | `GET /api/v1/workspace` | `workspace:read` |
-| **Contacts (list)** | `GET /api/v1/contacts` | `contacts:read` |
-| **Contacts (one)** | `GET /api/v1/contacts/:id` | `contacts:read` |
-| **Contacts (create)** | `POST /api/v1/contacts` | `contacts:write` |
-| **Contacts (patch)** | `PATCH /api/v1/contacts/:id` | `contacts:write` |
-| **Bookings (list)** | `GET /api/v1/bookings` | `bookings:read` |
-| **Bookings (one)** | `GET /api/v1/bookings/:id` | `bookings:read` |
+| **Workspace** | `GET /api/v1/workspace` | `integrations:read` |
+| **Contacts (list / one)** | `GET /api/v1/contacts`, `GET /api/v1/contacts/:id` | `contacts:read` |
+| **Contacts (create / patch)** | `POST /api/v1/contacts`, `PATCH /api/v1/contacts/:id` | `contacts:write` |
+| **Bookings (list / one)** | `GET /api/v1/bookings`, `GET /api/v1/bookings/:id` | `bookings:read` |
 
-### Planned
+### V2 read-only object families
 
-The token scopes for these resources are already defined so you can
-issue tokens that will work the moment endpoints land:
+`GET /api/v2/<family>` returns a workspace-scoped projection. Current
+families and their scopes are:
 
-- **Tasks** — list, read, create, status update.
-- **Reminders** — list and create.
-- **Calendar-account sync health** — read.
+| Family | Scope |
+|---|---|
+| `accounts` | `accounts:read` |
+| `contacts` | `contacts:read` |
+| `opportunities` | `opportunities:read` |
+| `bookings` | `bookings:read` |
+| `calendar-events` | `calendar_events:read` |
+| `tasks` | `tasks:read` |
+| `projects` | `projects:read` |
+| `processes`, `process-runs` | `processes:read` |
+| `webhook-subscriptions` | `webhooks:read` |
+| `integrations` | `integrations:read` |
 
-These ship as the underlying V1.2 platform work completes. Watch the
-[handoff queue](https://github.com/ldrcoach/calkeep) for updates.
-
-Public mutations are intentionally narrow today. Additional verbs ship
-as the underlying object semantics stabilize.
+Generic V2 `POST` requests are rejected. Additional mutations must use a
+documented, purpose-built public workflow rather than guessing an internal
+route.
 
 ## Response shape
 
-Every `/api/v1/*` response carries a `success` flag plus a `meta` block
-with `apiVersion` and the request id:
+Versioned public responses carry a `success` flag plus a `meta` block with the
+actual `apiVersion` (`v1` or `v2`) and request id:
 
 ```json
 // Success
@@ -146,17 +166,16 @@ with `apiVersion` and the request id:
 ```
 
 The request id is also returned in the `X-CalKeep-Request-Id` response
-header. Pass `X-Request-Id: <your-id>` on the request to thread your own
-identifier through the response and audit log.
+header. A safe `X-Request-Id: <your-id>` request value can be reflected in that
+response identifier; it is not an audit-log correlation contract.
 
 ## Rate limits
 
-Standard limits on Business; higher on Enterprise. CalKeep returns:
-
-- HTTP 429 when limited.
-- `Retry-After` header in seconds.
-- A clear `error.code` distinguishing rate limit (`rate_limited`) from
-  resource exhaustion (e.g., AI quota, marketplace seat ceiling).
+The current runtime uses shared limits rather than a plan-specific Enterprise
+bucket: a global limit of 1,000 requests per 15 minutes and an additional V1
+limit of 120 requests per minute. CalKeep returns HTTP 429 when a limit is
+reached; response details vary between the global and V1-specific limiter.
+Honor `Retry-After` when present and use exponential backoff.
 
 For sustained-throughput integrations, prefer webhooks over polling. See
 [Webhooks](/admin/webhooks).
@@ -177,23 +196,23 @@ again at the repository (`404` or `403` depending on context).
 
 Token actions write to the audit log:
 
-- `API_TOKEN_ISSUED`
-- `API_TOKEN_ROTATED`
-- `API_TOKEN_REVOKED`
-- `API_TOKEN_USED` (sampled, not per-request — for spotting orphan
-  tokens still in active use)
+- `api_token_created`
+- `api_token_secret_recovered`
+- `api_token_revoked`
+- `api_token_used` (attempted after each successful verification)
+- `api_token_auth_failed`
 
-Review at **Settings → Audit Log**.
+Review at **Admin Hub → Security & identity → Audit Log**.
 
 ## Step-up reauthentication
 
-Issuing or rotating a token requires **recent MFA** (within the past 5
-minutes). If it's stale, CalKeep prompts for TOTP or WebAuthn before
-letting the token surface a value.
+Issuing or revoking a token requires an enrolled factor and **recent MFA**. If
+the verification is stale, CalKeep prompts for TOTP or WebAuthn before the
+operation proceeds.
 
 ## Pagination
 
-List endpoints paginate via page number:
+V1 contact and booking lists paginate by page number:
 
 ```
 GET /api/v1/contacts?page=1&limit=50
@@ -215,6 +234,9 @@ Default page size is 50; max is 200. The list response shape:
 The resource-named key inside `data` (`contacts`, `bookings`, etc.)
 varies by endpoint.
 
+V2 object lists use `limit` (default 50, maximum 100) and `offset` (default 0)
+and return `items` plus `pagination.limit`, `offset`, `total`, and `hasMore`.
+
 ## Sample request
 
 ```bash
@@ -227,12 +249,10 @@ curl https://calkeep.com/api/v1/contacts \
 
 - OAuth-based delegated access (instead of admin-issued tokens) — V2
   candidate.
-- Public mutations beyond the slice above — we're letting object
-  semantics stabilize first.
+- Generic V2 mutations beyond the validated V1 contact slice.
 - Streaming/long-poll endpoints — use [webhooks](/admin/webhooks)
   instead.
-- Custom scope-per-token granularity beyond resource-level — V2
-  candidate.
+- Custom scope granularity beyond the current resource-level choices.
 
 For the integration-strategy overview, see
 [Platform automation](/admin/platform-automation).

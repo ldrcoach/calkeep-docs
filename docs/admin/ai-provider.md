@@ -15,7 +15,7 @@ calls go through CalKeep's **platform provider** at no extra cost. On
 For the buyer-facing positioning, see
 [AI calendar and contact cleanup](https://calkeep.com/solutions/ai-calendar-cleanup).
 
-Configure at **Settings → AI Provider**. (Admin only.)
+Configure at **Admin Hub → Integrations & services → AI Provider**. (Admin only.)
 
 ## Plan tier
 
@@ -30,22 +30,47 @@ When you switch a workspace to BYOK, the platform-side quota no longer
 applies to that workspace — your usage is billed by your AI provider
 directly.
 
-## Platform default
+## Saved source and effective runtime
 
-The default `Anthropic` platform provider:
+The provider saved for the workspace and the provider that can serve a
+request right now are related, but they are not the same piece of state.
+CalKeep shows both:
 
-- **Per-contact cleanup** uses Claude Haiku.
-- **Pattern discovery** uses Claude Sonnet.
-- **Ephemeral prompt caching** is enabled — repeated system prompts
-  across N per-contact calls become one billed read + N cheap cache
-  hits.
+- **Saved source** — the platform or BYOK choice last saved by an admin.
+- **Effective runtime** — the provider that is currently available to
+  execute AI work. A saved managed-provider choice can be unavailable if
+  the deployment is not configured or the provider is unhealthy.
+- **Unsaved draft** — changes currently being reviewed in the form. A draft
+  does not affect live AI work until **Save** succeeds.
 
-Fallbacks (when an admin has set workspace-level overrides, or platform
-keys are misconfigured) include OpenAI and Azure OpenAI.
+**CalKeep Recommended** selects from provider routes that are currently
+configured, qualified for the workload, and allowed for the workspace. The
+specific provider or model can change after evaluation, so the displayed
+effective route is authoritative. If no managed or workspace provider is
+available, AI remains unavailable rather than pretending a route exists. An
+explicitly saved BYOK source that is broken or unavailable does not silently
+fall back to the managed provider.
 
-You don't need to configure anything to use the platform default — it's
-the out-of-the-box behavior. The plan-tier monthly quotas (operations and
-tokens) apply.
+You do not need to supply a key to select the platform default. The plan-tier
+monthly quotas (operations and tokens) apply, but selection alone is not a
+health guarantee: use the effective-runtime status shown on the page.
+
+## Personal model preference
+
+Each user can open **Personal Settings → AI model preference**:
+
+- **Pro** uses **CalKeep Recommended**.
+- **Business** and **Enterprise** can choose from specific models that the
+  server currently marks configured, approved, and selectable for that
+  workspace.
+- Evaluation candidates may be visible for transparency but cannot be selected
+  until a matching endpoint is configured and the candidate passes review.
+- If a saved preference is no longer available under the current plan or
+  workspace configuration, CalKeep visibly uses Recommended for now. The
+  displayed effective route remains the source of runtime truth.
+
+Workspace administrators manage provider credentials and deployments
+separately from each user's model preference.
 
 ## Bring-your-own-key (BYOK)
 
@@ -68,22 +93,20 @@ Available on Business and Enterprise.
 
 ### Configure
 
-1. **Settings → AI Provider → Bring your own key.**
+1. **Admin Hub → Integrations & services → AI Provider → Bring your own key.**
 2. Select provider (Anthropic, OpenAI, or Azure OpenAI).
 3. Paste API key (Azure also requires endpoint URL and deployment name).
 4. Optional: pick a specific model (defaults are sensible for each
    provider).
 5. Click **Test connection**. CalKeep makes a minimal probe call against
-   the credentials.
+   the draft credentials. Testing does not save or activate the draft.
 6. **Save**.
 
 ### Security
 
-- The API key is **encrypted at rest** using the same AES key that
-  protects OAuth tokens.
-- The key is shown to you only at paste time. After you save, the
-  GET-settings response returns `hasKey: true` instead of the raw key
-  — there's no way to read it back through the UI.
+- The API key is **encrypted at rest**.
+- The key is shown to you only at paste time. After you save, the UI reports
+  only whether a key is stored; it never returns the raw key.
 - Rotation: paste a new key and save; the old encrypted value is
   overwritten.
 - Clearing: click **Clear key** to remove the stored key and revert to
@@ -109,33 +132,32 @@ The AI Provider settings page shows:
 
 - This-month operation count and token count.
 - Progress bars against your plan's monthly budget (platform mode).
-- Last-N-runs activity per AI feature (cleanup job, pattern discovery,
-  per-contact decisions).
+- The currently active/effective provider.
 
 For BYOK, the meter shows operation/token counts for your reference, but
 no budget bar — your provider's portal is the billing source of truth.
 
 ## Test connection
 
-The **Test connection** button on BYOK saves a minimal probe call:
+The **Test connection** button on BYOK sends a minimal probe call using the
+current draft:
 
 - Anthropic: a single short message to the chosen model.
 - OpenAI: same.
 - Azure OpenAI: a probe against the configured endpoint + deployment.
 
-Failures surface a clear error (invalid key, unreachable endpoint,
-unsupported model) without persisting the broken configuration.
+Success or failure never saves the draft. Failures surface a clear error
+(invalid key, unreachable endpoint, unsupported model) without persisting the
+broken configuration.
 
 ## Telemetry and audit
 
-AI provider configuration changes are audited:
-
-- Switching modes (platform ↔ BYOK).
-- Key set/cleared/rotated.
-- Test-connection runs (success/failure).
-- Per-feature usage counts (operation totals — not message contents).
-
-Find at **Settings → Audit Log** filtered by AI-related actions.
+Successful saved workspace-provider changes write the audit action
+`ai_settings_updated`, covering source changes and key set, clear, or
+replacement. **Test connection** sends a diagnostic probe against the draft but
+does not save the draft and does not create that settings-change audit row.
+Monthly usage totals appear on the AI Provider page; they are not documented as
+individual audit events.
 
 ## Troubleshooting
 
@@ -146,9 +168,9 @@ Find at **Settings → Audit Log** filtered by AI-related actions.
 - **Test connection times out** — for Azure OpenAI, the endpoint URL
   needs to include the full base path; double-check the format Azure
   expects in your Azure OpenAI resource overview.
-- **Key field shows `hasKey: true` but cleanup runs fail with auth
-  error** — the stored key has been revoked or rotated upstream. Paste
-  a fresh key and save.
-- **You want to know which model an operation actually used** — the
-  cleanup operation history page shows the provider and model per
-  operation, useful when comparing platform vs BYOK behavior.
+- **The UI says a key is stored, but cleanup runs fail with an authentication
+  error** — the stored key has been revoked or rotated upstream. Paste a fresh
+  key and save.
+- **You want to know which provider is active** — use the displayed effective
+  runtime on the AI Provider page or the effective route in Personal Settings;
+  do not infer it from the saved source alone.

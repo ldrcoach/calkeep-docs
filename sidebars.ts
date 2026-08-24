@@ -10,7 +10,7 @@ const sidebars: SidebarsConfig = {
     'getting-started',
     {
       type: 'category',
-      label: 'Connect calendars',
+      label: 'Connect accounts & sources',
       collapsed: false,
       items: [
         'integrations/google-calendar',
@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
       label: 'Admin guide',
       collapsed: false,
       items: [
+        'admin/admin-hub',
         'admin/team-management',
         'admin/team-calendar-visibility',
         'admin/security',

@@ -30,21 +30,31 @@ Yes — the **FREE plan** is permanently free for 1 user with 1 booking page and
 
 ### Which calendar providers does CalKeep support?
 
-- **Google Calendar** (any Google or Google Workspace account)
-- **Microsoft Outlook** (Outlook.com, Microsoft 365, Exchange Online)
-- **iCloud** (via app-specific password)
-- **Yahoo Calendar** (via app-specific password)
+- **Google** (personal or Google Workspace): current reviewed account setup for
+  Calendars, Contacts, and Tasks.
+- **Microsoft** (Outlook.com, Microsoft 365, Exchange Online): current reviewed
+  account setup for Calendars, Contacts, and Tasks.
+- **iCloud and Yahoo:** existing legacy CalDAV connections may remain usable,
+  but new app-password onboarding is temporarily paused. Read-only calendar
+  links and ICS snapshots are the current alternatives.
 
-You can connect any combination — CalKeep syncs them all into one unified view.
+For Google and Microsoft, requested access, provider-granted access, discovery,
+and activation are separate steps. New collections remain off until you review
+and enable them; connecting an account never enables every source or provider
+writeback automatically.
 
 ### How fast does sync happen?
 
 - **Google and Microsoft:** push notifications when events change, plus a poll every 2 minutes as a safety net. Typically you see updates within seconds.
-- **iCloud and Yahoo (CalDAV):** poll every 2 minutes. Updates land within ~2 minutes.
+- **Existing legacy iCloud and Yahoo CalDAV connections:** poll every 2
+  minutes. Approved read-only links and imported snapshots follow their own
+  refresh/import cadence and never receive writes from CalKeep.
 
 ### Does CalKeep modify my calendars?
 
-Only when you ask it to. Creating an event in CalKeep writes to whichever calendar you targeted, and can mirror to other connected calendars based on rules you control.
+Only when you ask it to and the exact target collection has effective provider-
+write authority. Mirroring requires the same authority on every destination.
+Subscribed read-only links and imported snapshots never receive writes.
 
 ### Can managers see private calendar event details?
 
@@ -55,9 +65,11 @@ list, or location manager-visible. For setup guidance, see
 
 ### Can a sales team use Outlook and Google calendars together?
 
-Yes. CalKeep supports Microsoft Outlook, Google Calendar, iCloud, and Yahoo
-calendars in the same workspace. This helps teams coordinate availability even
-when reps use different calendar providers.
+Yes. Current reviewed Google and Microsoft accounts can coexist with existing
+legacy iCloud/Yahoo CalDAV connections and approved read-only calendar links or
+snapshots. New iCloud/Yahoo app-password onboarding remains paused. This lets
+teams coordinate availability without implying that every source has the same
+sync or write capabilities.
 
 ---
 
@@ -65,7 +77,11 @@ when reps use different calendar providers.
 
 ### How do customers book a meeting?
 
-You share your booking page link (e.g., `calkeep.com/book/your-slug`). Customers see your real-time availability across all connected calendars, pick a time, and confirm. The event lands on your calendar; they get a confirmation email.
+You share your booking page link (e.g., `calkeep.com/book/your-slug`). Customers
+see availability computed from the enabled calendars you selected for
+availability, pick a time, and confirm. The event lands on the configured
+calendar when that exact target has effective write authority; they get a
+confirmation email.
 
 ### Does CalKeep work with my time zone?
 
@@ -73,7 +89,15 @@ Yes — CalKeep is timezone-aware. Booking pages display availability in the cus
 
 ### Can I charge for bookings?
 
-Stripe Connect support is in active development for direct charges at booking time. SaaS subscription billing already runs through Azure Marketplace.
+Paid checkout uses a two-stage readiness check. CalKeep's platform integration
+must be available **and** your workspace's Stripe or PayPal merchant account
+must be connected, fully set up, and accepting charges. The Payments screen may
+report unavailable here, status unavailable, not connected, setup incomplete,
+connected, accepting charges, recovery, or manual review. If current status
+cannot be verified, connection and paid-checkout controls remain unavailable.
+
+CalKeep workspace subscription billing remains separate and runs through Azure
+Marketplace.
 
 ---
 
@@ -120,7 +144,11 @@ If Azure reports a suspended or canceled subscription, CalKeep restricts paid-pl
 
 ### Does CalKeep have an API or webhooks?
 
-Yes. Business and Enterprise workspaces have access to scoped API tokens, versioned API endpoints, signed outbound webhooks, and delivery logs. See [Platform automation](/admin/platform-automation) for the public overview.
+Business and Enterprise workspaces can use existing scoped API tokens with the
+versioned API, and signed webhooks currently cover booking lifecycle plus public
+API V1 contact create/patch events. New API-token issuance in the current
+Integration Center is temporarily paused, and other webhook labels are not yet
+a delivery contract. See [Platform automation](/admin/platform-automation).
 
 ### Can I export my data?
 
@@ -128,7 +156,10 @@ Yes. Calendar data can be exported in ICS format, contacts can be exported in CS
 
 ### How do I delete a workspace or close an account?
 
-Full workspace deletion and account closure are currently operator-assisted. Email [support@calkeep.com](mailto:support@calkeep.com) from a workspace admin or owner address and include the workspace name. Support will confirm authority, explain retention and backups, and coordinate the deletion.
+Full workspace deletion and account closure are currently support-assisted.
+Email [support@calkeep.com](mailto:support@calkeep.com) from a workspace admin
+or owner address and include the workspace name. Support will confirm
+authority, explain retention and backups, and coordinate the deletion.
 
 ### How do I report a security issue?
 
@@ -140,7 +171,8 @@ Email [security@calkeep.com](mailto:security@calkeep.com). PGP key is available 
 
 ### How do I reach support?
 
-- **In-product:** the help icon in the sidebar opens a ticket form.
+- **In-product:** **Help & Support** in the sidebar opens recovery guidance,
+  FAQ, and a reviewed support request.
 - **Email:** [support@calkeep.com](mailto:support@calkeep.com)
 - **Status:** [calkeep.com/support](https://calkeep.com/support)
 

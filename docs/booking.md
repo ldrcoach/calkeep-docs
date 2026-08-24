@@ -8,8 +8,8 @@ description: Publicly-shareable scheduling links with event types, intake fields
 
 A **booking page** is a public scheduling link your customers, prospects, or
 teammates use to grab time on your calendar. CalKeep's booking pages pull from
-real availability across every connected calendar and feed every booked
-meeting into your workspace as a contact + task for follow-up.
+the enabled calendars you selected for availability and feed every booked
+meeting into your workspace as a contact for follow-up.
 
 Public URL shape:
 
@@ -77,7 +77,7 @@ fields**. Common patterns:
 - "How did you hear about us?"
 
 Answers land on the booking record and on the auto-created contact, so your
-follow-up tasks have context without manual data entry.
+follow-up workflow has context without manual data entry.
 
 ## Recurring bookings
 
@@ -110,8 +110,10 @@ old link can't be reused after a reschedule.
 
 ## Paid bookings (optional)
 
-Event types can require payment at booking time. CalKeep integrates
-with **Stripe Connect** and **PayPal Commerce**. On a paid event type:
+Event types can require payment at booking time when both layers of payment
+readiness are verified: CalKeep's platform integration is available and the
+workspace's Stripe or PayPal merchant account is connected, fully set up, and
+accepting charges. On a ready paid event type:
 
 - Visitors enter payment after picking a slot, before the booking is
   confirmed.
@@ -120,10 +122,13 @@ with **Stripe Connect** and **PayPal Commerce**. On a paid event type:
 - Cancellation policy is configurable: full refund, partial refund (with
   a percentage), or no refund — with a refund window in hours before
   the event start (default 24 hours).
-- Connect Stripe or PayPal at **Settings → Workspace Admin → Payments**.
+- Review Stripe or PayPal at **Admin Hub → Integrations & services → Payments**.
 
-If you don't configure payments, all event types are free — no payment
-prompt appears in the booking flow.
+The Payments screen distinguishes status unavailable, unavailable here, not
+connected, connected, setup incomplete, accepting charges, recovery, and
+manual review. If either the platform or workspace status cannot be verified,
+connection and paid-checkout controls remain unavailable. Event types without
+verified payment readiness continue as free-only flows.
 
 ## Branding
 
@@ -138,8 +143,9 @@ Pages → [page] → Branding** if one event type needs different colors.
 
 When a visitor books:
 
-1. The event lands on the host's connected calendar (the calendar the host
-   selected for that event type).
+1. CalKeep provisions the event on the host's selected target calendar when
+   that exact calendar has effective provider-write authority. The CalKeep
+   booking remains the durable record if provider provisioning cannot complete.
 2. CalKeep auto-creates a contact record (or matches an existing one) so
    follow-up has a home.
 3. Confirmation, reminder, and (where applicable) reschedule emails are sent
@@ -158,7 +164,7 @@ land with whichever rep is actually free. Configure under **Booking Pages →
 
 Each rep maintains their own calendars and availability profile. The booking
 page checks free/busy across the pool and assigns the meeting; the booked
-meeting flows into that rep's contacts and tasks.
+meeting flows into that rep's contact and follow-up workflow.
 
 ## Buyer-facing positioning
 
@@ -169,7 +175,8 @@ practice's workflow, see
 ## Troubleshooting
 
 - **Visitor sees no available times:** the event type's availability profile
-  may be too narrow, or every connected calendar is fully booked. Check at
+  may be too narrow, or every enabled availability calendar is fully booked.
+  A discovered or merely connected calendar is not automatically used. Check at
   **Event Types → [type] → Availability**.
 - **A booking didn't appear on my calendar:** check **Sync History** in the
   sidebar for sync errors on the host's connected account.
