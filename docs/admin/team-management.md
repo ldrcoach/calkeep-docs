@@ -10,7 +10,7 @@ This page is for **workspace admins** managing who can access the workspace.
 
 ## Invite a teammate
 
-Go to **Settings → Team**. There are several invite paths — pick what fits:
+Go to **Admin Hub → Workspace management → Team members**. There are several invite paths — pick what fits:
 
 - **Single invitation:** enter an email + role (user or admin), click Send. They get an email with a join link valid for 7 days.
 - **Bulk CSV invitation:** paste a list of `email,role` lines and send them all at once.
@@ -18,7 +18,7 @@ Go to **Settings → Team**. There are several invite paths — pick what fits:
 - **M365 directory picker:** authorize CalKeep to read your tenant's user list, then hand-pick who to invite.
 - **Domain auto-join:** any new sign-in from your verified company domain joins automatically.
 
-For the full setup walkthrough, see [Getting started → Step 3](/getting-started#step-3-onboard-your-team).
+For the full setup walkthrough, see [Getting started → Step 5](/getting-started#step-5-onboard-your-team).
 
 If you are setting up a sales or client-service team and need manager visibility
 without exposing private calendar details, see
@@ -46,7 +46,7 @@ When you hit the Marketplace seat ceiling, the invite form shows a banner with a
 
 ## Remove a teammate
 
-**Settings → Team → [user] → Remove.** This:
+**Admin Hub → Workspace management → Team members → [user] → Remove.** This:
 
 - Soft-deletes the user account (data preserved for audit).
 - Invalidates every session token they had — they're signed out immediately.
@@ -58,4 +58,4 @@ Removing yourself is blocked — ask another admin to do it.
 
 ## Audit trail
 
-Every team management action writes to the **audit log** at **Settings → Audit Log** (admin-only). Visible: invites sent, invites resent, invites revoked, invites accepted, role changes, removals. The retention window is 90 days on FREE/PRO/BUSINESS and configurable up to 7 years on ENTERPRISE.
+Every team management action writes to the audit log at **Admin Hub → Security & identity → Audit Log** (admin-only). Visible: invites sent, invites resent, invites revoked, invites accepted, role changes, removals. The retention window is 90 days on FREE/PRO/BUSINESS and configurable up to 7 years on ENTERPRISE.

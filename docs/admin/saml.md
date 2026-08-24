@@ -35,7 +35,7 @@ This page is the admin reference. For the buyer-facing overview, see
 
 ## Configure
 
-Go to **Settings → Workspace Admin → SSO Configuration**. (Admin role +
+Go to **Admin Hub → Security & identity → SSO Configuration**. (Admin role +
 recent MFA required.)
 
 ### Step 1: Exchange metadata
@@ -52,7 +52,7 @@ This XML document contains the entityId, ACS URL, certificate, and
 signature requirements your IdP needs.
 
 **Loading the IdP's metadata into CalKeep:** upload the IdP metadata XML
-file at **Settings → Workspace Admin → SSO Configuration → Upload IdP
+file at **Admin Hub → Security & identity → SSO Configuration → Upload IdP
 metadata**. CalKeep parses the file and shows you the parsed fields
 (entityId, SSO URL, SLO URL, certificate) for review before saving.
 You can also enter the fields by hand if you don't have a metadata
@@ -82,9 +82,9 @@ Decide who gets created on first sign-in:
 
 | Option | Behavior |
 |---|---|
-| **Disabled** | Users can use SAML or password — both paths work. |
-| **Enabled, not enforced** | SAML is available, but password login still works for everyone. |
-| **Enabled and enforced** | Password / magic-link login is blocked for everyone except the workspace owner (emergency-access bypass). |
+| **Disabled** | SAML is paused. The saved configuration remains available to re-enable later; clearing the configuration is a separate action. |
+| **Enabled, not enforced** | SAML is available, and the workspace's other primary sign-in methods remain available. |
+| **Enabled and enforced** | Non-owners must use SAML. Password, magic-link, calendar-provider/OIDC, and passkey primary sign-in are blocked. The workspace owner retains the emergency-access bypass. |
 
 The owner-bypass is intentional: if SAML breaks (expired cert,
 misconfigured IdP, IdP outage), the workspace owner can still sign in
@@ -102,8 +102,10 @@ Once configured:
 5. CalKeep verifies the signature, JIT-provisions if needed, mints a
    session JWT, and redirects to the app.
 
-If `enforced` is on, only the SSO button is visible to non-owners on
-your branded login page.
+If enforcement is on, only the SSO path is available to non-owners. Turning
+SAML off pauses it without erasing the saved metadata, certificates, mappings,
+or enforcement draft; **Clear configuration** is the distinct destructive
+action for removing those saved values.
 
 ## Single Logout (SLO)
 
@@ -118,14 +120,14 @@ This means a logout from the IdP propagates to CalKeep within seconds.
 
 Every SAML event writes to the audit log:
 
-- `SAML_LOGIN` — successful sign-in (with `provisioned: true|false`,
+- `saml_login` — successful sign-in (with `provisioned: true|false`,
   resolved role, matched groups).
-- `SAML_LOGIN_FAILED` — with a reason code (`signature`, `replay`,
+- `saml_login_failed` — with a reason code (`signature`, `replay`,
   `claim`, `unknown`).
-- `SAML_CONFIG_UPDATED` — the change set, plus previous and next
+- `saml_config_updated` — the change set, plus previous and next
   enabled state.
 
-Review at **Settings → Audit Log**.
+Review at **Admin Hub → Security & identity → Audit Log**.
 
 ## Compatibility
 

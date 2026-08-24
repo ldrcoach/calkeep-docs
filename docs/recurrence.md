@@ -6,10 +6,10 @@ description: How CalKeep handles recurring calendar events and recurring booking
 
 # Recurring events and bookings
 
-CalKeep handles recurrence the same way Google, Outlook, and CalDAV do —
-with a **master event** plus an exception model. This page explains how the
-model behaves so cancelling or rescheduling one occurrence does what you
-expect.
+CalKeep normalizes recurring events into a **master event** plus an exception
+model, while translating provider-specific recurrence shapes when a connected
+source is allowed to receive a write. This page explains how cancelling or
+rescheduling one occurrence behaves.
 
 ## Master + exceptions
 
@@ -22,8 +22,9 @@ attendees, cancel just that week — CalKeep creates an **exception** record
 linked to the master by its `recurrenceId` and `originalStartTime`. The
 master keeps running; the exception overrides one slot.
 
-This matches how Google and Microsoft Graph store recurrence, so two-way
-sync stays clean.
+This matches the recurrence shape used by Google and Microsoft Graph. Provider
+propagation remains conditional on the targeted collection's effective write
+authority; discovering or reading a calendar never grants write access.
 
 ## Edit and cancel scopes
 
@@ -59,7 +60,8 @@ Recurring bookings build on the same model. When a visitor books a recurring
 slot:
 
 1. Both a master and the first occurrence are committed in one transaction.
-2. Provider-side calendar events are provisioned for each occurrence.
+2. Provider-side calendar events are provisioned for each occurrence only when
+   the targeted collection has effective provider-write authority.
 3. If a provider provisioning step fails, a background retry worker handles
    it; the booking is durable in CalKeep regardless.
 
@@ -81,12 +83,14 @@ Each provider has its own recurrence convention:
   exceptions as separate event records linked by `recurringEventId`.
 - **Microsoft Outlook** uses a similar master + exceptions pattern via
   Microsoft Graph.
-- **CalDAV (iCloud, Yahoo)** stores recurrences inline in the calendar
-  collection.
+- **Legacy CalDAV (iCloud, Yahoo)** stores recurrences inline in the calendar
+  collection. New app-password onboarding is paused; approved read-only links
+  and file snapshots do not receive writes.
 
-CalKeep normalizes all three into the same internal model. When you edit a
-single occurrence in CalKeep and the change propagates to the provider,
-each provider gets the change in its native shape.
+CalKeep normalizes these sources into the same internal model. When you edit a
+single occurrence and the exact target has effective provider-write authority,
+the provider receives the change in its native shape. Read-only subscribed
+links and imported snapshots remain read-only.
 
 ## Troubleshooting
 

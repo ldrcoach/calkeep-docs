@@ -33,14 +33,18 @@ Connected calendars can help CalKeep:
 - block availability when a rep is already busy;
 - prevent booking conflicts;
 - show unified scheduling context to the calendar owner;
-- support provider-aware sync across Google, Outlook, iCloud, and Yahoo.
+- support provider-aware synchronization for reviewed Google and Microsoft
+  calendars and existing legacy CalDAV connections; and
+- add read-only availability or imported context from subscribed links and file
+  snapshots. File snapshots do not sync, and read-only subscriptions never
+  receive provider writes.
 
 Private event titles, attendees, notes, and locations should not be treated as
 manager-visible data just because a calendar is connected for availability.
 
 ## Recommended setup for sales teams
 
-1. Invite team members from **Settings -> Team**.
+1. Invite team members from **Admin Hub → Workspace management → Team members**.
 2. Ask each rep to connect the calendars they want CalKeep to use for
    availability.
 3. Create booking pages for sales calls, demos, renewals, or onboarding.
@@ -54,8 +58,11 @@ For invite and seat details, see [Team management](/admin/team-management).
 
 Sales teams often have a Microsoft 365 admin, Google calendars from acquired
 teams, and personal iCloud or Yahoo calendars used for availability blocking.
-CalKeep supports those providers together so teams do not have to standardize
-on one calendar provider before coordinating availability.
+Google and Microsoft use the current reviewed account setup. Existing legacy
+iCloud or Yahoo CalDAV connections may remain usable; new app-password setup is
+paused, so current onboarding uses approved read-only calendar links or file
+snapshots. These sources can coexist without forcing the team onto one
+calendar provider.
 
 Provider setup guides:
 
@@ -67,7 +74,7 @@ Provider setup guides:
 
 When a rep leaves the team:
 
-1. Remove the user from **Settings -> Team**.
+1. Remove the user from **Admin Hub → Workspace management → Team members**.
 2. Review customer-owned workspace records such as contacts, tasks, projects,
    processes, and booking pages.
 3. Reassign follow-up work that belongs to the business.

@@ -86,9 +86,11 @@ plan is restored.
 
 ## Programmatic access
 
-Opportunity-specific API and webhook coverage is on the V1.2 roadmap.
-Today, the contact and task surfaces (see [API tokens](/admin/api))
-cover most pipeline-adjacent automation needs through their links.
+Business and Enterprise integrations can read opportunities through the
+documented read-only `/api/v2/opportunities` family. Opportunity webhook labels
+are not part of the current production delivery contract, so integrations must
+reconcile this projection. See [API tokens](/admin/api) and
+[Webhooks](/admin/webhooks).
 
 For workspaces that need full CRM data export, the contact CSV export
 and booking CSV (planned) are the workspace-portable artifacts.

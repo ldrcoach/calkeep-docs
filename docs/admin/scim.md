@@ -60,14 +60,16 @@ Standard SCIM 2.0 surface:
 
 Per-workspace bearer tokens of the shape `scim_<base64url>`.
 
-The token is shown to the admin **once** at issuance. CalKeep stores only
-its SHA-256 hash and a 12-character display prefix — there's no way to
-re-show the token after the dialog closes. Save it in your IdP's
-SCIM-connector configuration immediately.
+The token is shown to the admin **once** at issuance. CalKeep stores only its
+SHA-256 hash and a 12-character display prefix. The reveal stays open until
+the admin confirms that the value was stored securely. If the response is
+interrupted, retry the exact issuance command: CalKeep may recover the same
+one-time token rather than minting a duplicate. Once the acknowledged reveal
+closes, the token cannot be displayed again.
 
 ## Issue a token
 
-**Settings → Workspace Admin → SCIM Provisioning → Generate token.**
+**Admin Hub → Security & identity → SCIM Provisioning → Generate token.**
 (Admin role + recent MFA required.)
 
 You'll get:
@@ -81,7 +83,7 @@ spot orphaned tokens.
 
 ## Revoke a token
 
-**Settings → Workspace Admin → SCIM Provisioning → [token] → Revoke.**
+**Admin Hub → Security & identity → SCIM Provisioning → [token] → Revoke.**
 
 Revocation is immediate. The token row is preserved (soft-deleted) for
 audit, but no further requests authenticate.
@@ -152,9 +154,6 @@ SchemaProvider response so IdP admins can correlate.
 6. Enable Create / Update / Deactivate Users.
 7. Configure the right Push Groups.
 
-For step-by-step IdP setup beyond the basics, see
-[the SCIM token rotation runbook](https://github.com/ldrcoach/calkeep/blob/main/docs/runbooks/scim-token-rotation.md).
-
 ## Workspace isolation
 
 SCIM tokens are workspace-scoped. A SCIM client authenticated against
@@ -166,11 +165,12 @@ query against that.
 
 SCIM activity writes to the audit log:
 
-- `SCIM_TOKEN_ISSUED` / `SCIM_TOKEN_REVOKED`.
-- `SCIM_USER_PROVISIONED` / `SCIM_USER_UPDATED` / `SCIM_USER_DEPROVISIONED` /
-  `SCIM_USER_DELETED`.
+- `scim_token_issued` / `scim_token_secret_recovered` /
+  `scim_token_revoked`.
+- `scim_user_provisioned` / `scim_user_updated` / `scim_user_deprovisioned` /
+  `scim_user_deleted`.
 
-Review at **Settings → Audit Log**.
+Review at **Admin Hub → Security & identity → Audit Log**.
 
 ## Token rotation
 
@@ -182,8 +182,9 @@ change.
 3. Verify provisioning is still working (test with a user add/remove).
 4. Revoke the old token.
 
-The runbook at [scim-token-rotation.md](https://github.com/ldrcoach/calkeep/blob/main/docs/runbooks/scim-token-rotation.md)
-walks through this in detail.
+If an issuance response is interrupted during rotation, retry the exact same
+command before starting another rotation. A successful retry can recover the
+same replacement token and avoids creating an unnecessary extra credential.
 
 ## Out of scope (today)
 

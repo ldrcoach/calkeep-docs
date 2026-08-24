@@ -6,26 +6,26 @@ description: What's logged, how to read it, and how retention works across plans
 
 # Audit log
 
-Every security-relevant and admin action in your workspace writes to the
-audit log. This page covers what's captured, how to read it, and how
-retention scales by plan.
+Supported security, identity, integration, billing, and administrative actions
+in your workspace write to the audit log. This page covers the audited surface,
+how to read it, and how retention scales by plan.
 
-For machine-readable exports for SIEM ingestion, see
-[Compliance and audit exports](/admin/compliance).
+The Audit Log can download its current filtered view as JSON. Enterprise
+workspaces also have two control-evidence CSV downloads under Authentication
+Policy; see [Compliance and audit exports](/admin/compliance).
 
 ## Where to read it
 
-**Settings → Workspace Admin → Audit Log.** (Admin only.) The page
-lives at `/audit-log` in your workspace.
+Open **Admin Hub → Security & identity → Audit Log** (admin only).
 
-The list view is paginated, sortable by time, and filterable by:
+The list view is paginated newest-first and filterable by:
 
-- Action type (e.g., `INVITATION_SENT`, `MFA_ADMIN_RESET`).
-- Actor user.
-- Affected resource.
+- Action type (for example, `LOGIN_SUCCESS`).
+- Entity type.
 - Date range.
 
-Click any entry to see the full event payload.
+Click an entry to see its sanitized response projection. Fields vary by action;
+known secret-bearing metadata and capability-bearing URL segments are masked.
 
 ## What's captured
 
@@ -34,16 +34,16 @@ team membership. Categories include:
 
 | Category | Sample actions |
 |---|---|
-| **Authentication** | `MFA_*`, `WEBAUTHN_*`, `SAML_LOGIN[_FAILED]`, `MAGIC_LINK_*`, `TRUSTED_DEVICE_*` |
-| **Team / users** | `INVITATION_SENT`, `INVITATION_ACCEPTED`, `BULK_INVITATIONS_SENT`, `USER_DEACTIVATED`, role changes |
-| **Workspace policy** | `WORKSPACE_MFA_POLICY_CHANGED`, `WORKSPACE_SSO_POLICY_CHANGED`, `WORKSPACE_IP_ALLOWLIST_CHANGED`, `WORKSPACE_AUDIT_RETENTION_CHANGED`, `WORKSPACE_SESSION_POLICY_CHANGED` |
-| **SAML / SCIM** | `SAML_CONFIG_UPDATED`, `SCIM_TOKEN_ISSUED`, `SCIM_USER_PROVISIONED`, `SCIM_USER_DEPROVISIONED` |
-| **Marketplace** | `MARKETPLACE_PLAN_UPDATED`, `MARKETPLACE_APPROVAL_REQUESTED`, `MARKETPLACE_APPROVAL_GRANTED`, `MARKETPLACE_APPROVAL_DENIED` |
+| **Authentication** | `LOGIN_SUCCESS`, `LOGIN_FAILED`, `MFA_ADMIN_RESET`, `webauthn_policy_changed`, `saml_login`, `saml_login_failed` |
+| **Team / users** | `INVITATION_SENT`, `INVITATION_ACCEPTED`, `bulk_invitations_sent`, `workspace_user_deactivated` |
+| **Workspace policy** | `WORKSPACE_MFA_POLICY_CHANGED`, `workspace_sso_policy_changed`, `workspace_ip_allowlist_changed`, `workspace_audit_retention_changed`, `workspace_session_policy_changed` |
+| **SAML / SCIM** | `saml_config_updated`, `saml_login`, `saml_login_failed`, `scim_token_issued`, `scim_user_provisioned`, `scim_user_deprovisioned` |
+| **Marketplace billing** | `MARKETPLACE_PLAN_UPDATED` |
 | **Auto-join domains** | `AUTO_JOIN_DOMAIN`, `AUTO_JOIN_POLICY_UPDATED`, `AUTO_JOIN_DOMAIN_VERIFIED` |
 | **Invite links** | `INVITE_LINK_CREATED`, `INVITE_LINK_REVOKED`, `INVITE_LINK_ACCEPTED` |
-| **Force re-enrollment** | `FORCE_REENROLL` |
+| **Force re-enrollment** | `force_reenroll` |
 | **Force MFA admin reset** | `MFA_ADMIN_RESET` |
-| **Compliance exports** | (action varies — included in compliance JSON export) |
+| **Compliance exports** | `compliance_export` |
 | **Contact import** | `CONTACT_IMPORT` (with row counts) |
 
 Each row records the actor, target, timestamp, IP address (where
@@ -51,8 +51,8 @@ relevant), and an event-specific payload.
 
 ## Retention
 
-Audit storage in CalKeep is unbounded — events are kept forever in the
-database. **Read access** is scoped to a retention window per plan:
+Audit rows are physically removed according to the workspace's retention
+policy:
 
 | Plan | Audit-log read window |
 |---|---|
@@ -63,64 +63,63 @@ Enterprise admins change the retention window via the workspace
 audit-retention setting (admin-only, requires recent MFA). Allowed
 values are 1, 3, or 7 years.
 
-The change is itself audited (`WORKSPACE_AUDIT_RETENTION_CHANGED`).
+The change is itself audited (`workspace_audit_retention_changed`).
 
-Lower tiers can't reach beyond 90 days even if events older than that
-exist in storage. This is a deliberate floor — Enterprise is the tier
-that needs longer recall for compliance purposes.
+Lower tiers retain 90 days. Enterprise defaults to one year and can select
+three or seven years. The main Audit Log list and JSON download clamp their
+queries immediately to the configured window. Physical deletion runs at startup
+and daily in bounded batches, so shortening retention is asynchronous and can
+take additional purge runs to finish. Ancillary summaries/detail lookups and
+the separate compliance export are not yet a universal hard read-time boundary
+during that purge interval.
 
 ## Data privacy in audit entries
 
 The audit log records what happened, not what was said:
 
-- **Booking and meeting content** — title, attendee list, notes — is
-  never captured in the audit log. It lives on the calendar event /
-  booking record itself, with the workspace's normal access controls.
-- **Personal calendar event detail** stays where it is. Audit entries
-  reference resources by id, not by content.
-- **Authentication entries** record the action (success/failure, method)
-  and the actor. They do not capture passwords, TOTP codes, or
-  WebAuthn assertion payloads.
+- Response projections sanitize metadata and mask known capability-bearing
+  path segments before presenting audit details.
+- Audit producers are expected to record operational identifiers and outcomes,
+  not passwords, bearer credentials, TOTP codes, or WebAuthn assertions.
+- Fields vary by action; review the sanitized projection rather than assuming
+  every producer records the same metadata.
 
 System-level events that have no `workspaceId` (e.g., platform-wide
 configuration) are intentionally excluded from workspace audit reads
 and exports — only events scoped to your workspace leave the tenant
 boundary.
 
-## Programmatic export
+## Export
 
-The audit-log read endpoint is available to admins on every plan:
+The Audit Log page can download up to the 100 newest rows matching the currently
+reviewed action, entity-type, and date filters as workspace-scoped JSON on every
+plan. The download is clamped to the plan's retention window and requires a
+verified email, an enrolled factor, and recent MFA.
 
-```
-GET /api/audit
-```
-
-Lookback is clamped to the plan's retention window. Lightweight JSON
-export of audit entries from this endpoint is included on every plan
-within the retention window.
-
-For richer exports (CSV with stable column order for SIEM ingest, action
-filter, longer time windows on Enterprise), see [Compliance and audit
-exports](/admin/compliance) — that surface is gated to Enterprise.
+Enterprise workspaces have a separate **Compliance** section under
+**Authentication Policy**. It downloads credential metadata as CSV and audit
+events as CSV for a selected 30-, 90-, or 365-day lookback. See
+[Compliance and audit exports](/admin/compliance).
 
 ## Common review patterns
 
-- **Quarterly access review** — filter by `INVITATION_*`, `USER_DEACTIVATED`,
-  and role changes over the quarter. Confirms team roster movement.
-- **MFA hygiene** — filter by `MFA_*` and `WEBAUTHN_*`. Surfaces users
-  who haven't enrolled.
-- **SAML or SCIM debugging** — filter by `SAML_*` and `SCIM_*` to follow
-  a specific login attempt or provisioning event.
-- **Plan-source / billing** — filter by `MARKETPLACE_*` to see plan
+- **Quarterly access review** — review invitation and
+  `workspace_user_deactivated` rows over the quarter.
+- **MFA hygiene** — review the relevant MFA and WebAuthn rows or download JSON
+  for the current date/entity filters. The current fixed action picker exposes
+  only its listed legacy values, not every exact action emitted by newer
+  workflows and not wildcard families.
+- **SAML or SCIM debugging** — review exact SAML or SCIM rows for the affected
+  period; the UI does not expand `SAML_*` or `SCIM_*` patterns.
+- **Plan-source / billing** — review `MARKETPLACE_PLAN_UPDATED` rows for plan
   transitions tied to your Azure Marketplace subscription.
 
 ## Troubleshooting
 
 - **An action I expected to see isn't logged** — confirm the action type
-  is in the captured-categories list above. Some app-level actions
-  (creating a contact, completing a task) are not security-audited; if
-  you need that visibility, the [Webhooks](/admin/webhooks) surface
-  emits real-time events for those.
+  is in the captured-categories list above. The current webhook contract covers
+  booking lifecycle and API V1 contact create/patch events, not every product
+  mutation; see [Webhooks](/admin/webhooks).
 - **I see entries for system actors I don't recognize** — system actors
   (e.g., the SCIM connector running on a token) appear with a clear
   marker so you can distinguish them from human users.

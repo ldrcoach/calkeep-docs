@@ -20,12 +20,16 @@ For the buyer-facing positioning, see
 | Plan | Webhooks |
 |---|---|
 | Free / Pro | Not available |
-| **Business** | Available with standard delivery-log retention |
-| **Enterprise** | Available with higher rate limits and longer log retention |
+| **Business** | Available for the delivered events below |
+| **Enterprise** | Available for the delivered events below |
+
+The Integration Center shows recent delivery records, but CalKeep does not yet
+publish a plan-specific webhook delivery-log retention duration or a separate
+Enterprise webhook-rate bucket.
 
 ## Manage at
 
-**Settings → Workspace Admin → Integrations → Webhooks.** (Admin role +
+**Admin Hub → Integrations & services → Integration Center → Webhooks.** (Admin role +
 recent MFA.) Webhooks live in the Integration Center alongside API
 tokens, provider health, and exports.
 
@@ -34,25 +38,31 @@ Each subscription has:
 - **Destination URL** — where deliveries POST to.
 - **Selected events** — which event types fire.
 - **Signing secret** — for verification on your side. Rotate any time.
-- **Enabled / disabled** — toggle without losing the subscription.
+- **Enabled state** — a subscription starts enabled and can be disabled. The
+  current UI does not re-enable a disabled subscription; create a reviewed
+  replacement when service must resume.
 
-## Event catalog
+When you create a subscription, CalKeep shows its signing secret once and keeps
+the secret dialog open until you confirm that you stored it. If the response is
+interrupted or ambiguous, retry the same create action: CalKeep recovers the
+same subscription and secret instead of creating a second subscription.
 
-The first stable event set:
+## Delivered event catalog
 
-| Event | When it fires |
+The current production delivery contract is intentionally narrower than some
+planned labels that may appear in the Integration Center. Select only these
+events in v4.5.0:
+
+| Family | Event types |
 |---|---|
-| `booking.created` | A new booking is committed. |
-| `booking.rescheduled` | An existing booking moves to a new time. |
-| `booking.cancelled` | A booking is cancelled (single instance, all events, or this-and-future scope is included in the payload). |
-| `contact.created` | A new contact is created — via booking auto-create, manual, import, or API. |
-| `contact.updated` | An existing contact's fields change. |
-| `task.created` | A new task is created — Inbox, project, or process run. |
-| `task.completed` | A task transitions to `done`. |
-| `reminder.due` | A reminder fires (matches whichever channel was configured). |
-| `calendar.sync_failed` | A connected calendar account hits an unrecoverable sync error (auth_expired, credentials_invalid, etc.). |
+| **Bookings** | `booking.created`, `booking.rescheduled`, `booking.cancelled` |
+| **API V1 contacts** | `contact.created`, `contact.updated` |
 
-Additional events ship as the underlying object semantics stabilize.
+Contact events are emitted only by successful public API V1 contact create and
+patch operations. Manual edits, imports, booking-created contacts, and other
+contact changes do not currently promise these events. Planned task, reminder,
+sync, CRM, project, process, delegation, routing, account, and Marketplace
+labels are not a production delivery contract yet.
 
 ## Payload shape
 
@@ -66,28 +76,33 @@ Every event payload includes:
   "workspaceId": "...",
   "occurredAt": "2026-05-10T16:00:00Z",
   "object": {
-    // The full object snapshot at commit time.
-    // Stable identifiers and useful fields — not raw OAuth tokens or secrets.
+    "type": "booking",
+    "id": "..."
+  },
+  "data": {
+    "...": "event-specific fields"
   },
   "links": {
-    "self": "https://calkeep.com/api/v1/bookings/...",
-    // Other useful links to related resources.
+    "api": "/api/v1/bookings/..."
   }
 }
 ```
 
-Payloads carry stable identifiers and minimal useful snapshots.
+`links.api` is a relative public-API link for contact and booking events and is
+`null` for event families without a matching public V1 object route. Payloads
+carry stable identifiers and a scrubbed, event-specific `data` object.
 **Sensitive fields** — provider OAuth tokens, secrets, payment
 instruments — are never included.
 
 ## Signature
 
-Three headers identify and authenticate the request:
+Four CalKeep headers identify and authenticate the request:
 
 | Header | Value |
 |---|---|
-| `X-CalKeep-Webhook-Id` | The `eventId` (use as your idempotency key). |
-| `X-CalKeep-Webhook-Timestamp` | Unix seconds when the event fired. |
+| `X-CalKeep-Webhook-Id` | The `eventId`. |
+| `X-CalKeep-Webhook-Idempotency-Key` | `wh_<eventId>`; persist this before applying side effects. |
+| `X-CalKeep-Webhook-Timestamp` | Unix seconds when CalKeep signed this delivery attempt. |
 | `X-CalKeep-Webhook-Signature` | `v1=<hex>` where `<hex>` is HMAC-SHA256 of `${timestamp}.${rawBody}` using the subscription's signing secret. |
 
 ### Verification (Node.js)
@@ -100,6 +115,13 @@ function verify(req, secret) {
   const signature = req.headers['x-calkeep-webhook-signature']; // 'v1=<hex>'
   const rawBody = req.rawBody;  // requires raw-body middleware
 
+  if (typeof timestamp !== 'string' ||
+      typeof signature !== 'string' ||
+      !/^v1=[0-9a-f]{64}$/i.test(signature) ||
+      !Buffer.isBuffer(rawBody)) {
+    return false;
+  }
+
   // Reject if older than 5 minutes (replay protection)
   if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) {
     return false;
@@ -110,10 +132,10 @@ function verify(req, secret) {
     .update(`${timestamp}.${rawBody}`)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(expected),
-    Buffer.from(signature)
-  );
+  const expectedBytes = Buffer.from(expected);
+  const receivedBytes = Buffer.from(signature || '');
+  return expectedBytes.length === receivedBytes.length &&
+    crypto.timingSafeEqual(expectedBytes, receivedBytes);
 }
 ```
 
@@ -129,10 +151,9 @@ def verify(headers, raw_body, secret):
     if abs(time.time() - int(timestamp)) > 300:
         return False
 
+    signed_bytes = str(timestamp).encode() + b'.' + raw_body
     expected = 'v1=' + hmac.new(
-        secret.encode(),
-        f"{timestamp}.{raw_body}".encode(),
-        hashlib.sha256,
+        secret.encode(), signed_bytes, hashlib.sha256
     ).hexdigest()
 
     return hmac.compare_digest(expected, signature)
@@ -146,49 +167,58 @@ Critical points:
   `compare_digest`) to avoid timing-attack leaks.
 - **Reject requests older than 5 minutes** (or your chosen window) —
   replay protection.
-- **Idempotency-key on `eventId`** — CalKeep guarantees at-least-once
-  delivery; your handler should be idempotent.
+- **Use `X-CalKeep-Webhook-Idempotency-Key`** — CalKeep delivers at least
+  once, so persist that key and make your handler idempotent.
 
 ## Delivery semantics
 
-CalKeep uses an **outbox pattern**:
+Once an event has been enqueued, CalKeep uses a durable delivery outbox:
 
 1. Source-of-truth transaction commits.
 2. A delivery row is persisted to the outbox.
 3. The delivery worker picks it up and POSTs to your destination.
 
-This guarantees a webhook is sent only after the underlying change
-committed — no false positives.
+Queued deliveries are attempted only after the underlying change commits and
+are delivered at least once. The API V1 contact enqueue is post-commit rather
+than atomically coupled to the contact transaction, so consumers should also
+reconcile through the versioned API instead of treating the webhook stream as a
+complete change ledger.
 
 ### Retries
 
-If your endpoint returns non-2xx (or the request times out), CalKeep
-retries with exponential backoff:
-
-- 1 minute, 5 minutes, 30 minutes, 2 hours, 12 hours.
-- After 5 failed attempts, the delivery is moved to **dead-letter** state.
+If your endpoint returns non-2xx, times out, or cannot be reached safely,
+CalKeep performs six total attempts: the original attempt, an immediately
+eligible retry, then retries scheduled after approximately 1 minute, 5 minutes,
+15 minutes, and 1 hour. Worker cadence can add delay. After the sixth failed
+attempt, the row becomes **dead-lettered**.
 
 ### Dead-letter handling
 
-Failed deliveries past the retry budget appear at **Settings →
-Workspace Admin → Integrations → Webhooks → [subscription] → Dead-letter**.
-From there:
+Failed deliveries appear in **Admin Hub → Integrations & services →
+Integration Center → Recent webhook deliveries**. After fixing the receiving
+endpoint, use **Retry** on a dead-lettered row to place that exact delivery
+back in the retry queue. There is no discard action in the current UI.
 
-- **Replay** — re-attempt delivery now (useful after fixing your
-  endpoint).
-- **Discard** — drop the failed delivery permanently.
-
-Delivery logs (status code, attempt count, response body truncated to
-prevent cookie/token bleed) are kept per subscription.
+The log shows scrubbed status, attempt count, last-attempt time, and a truncated
+response/error preview. It never displays the signing secret or raw sensitive
+provider data.
 
 ## Secret rotation
 
-**Settings → Workspace Admin → Integrations → Webhooks → [subscription]
+**Admin Hub → Integrations & services → Integration Center → Webhooks → [subscription]
 → Rotate secret.**
 
-Rotation is non-disruptive — CalKeep accepts both the old and new secret
-during a grace window so your receiver can be updated without dropping
-deliveries.
+Rotation immediately replaces the subscription's sole active secret; there is
+no dual-secret grace period. Coordinate a short maintenance window, rotate,
+store the replacement, and update the receiver before expecting later
+deliveries to verify successfully. Failed attempts remain visible and can be
+retried after the receiver is updated.
+
+The replacement secret is a one-time reveal and stays open until you
+acknowledge that it was stored securely. If the response is interrupted,
+retry the exact rotation command: CalKeep may recover the same replacement
+secret rather than creating another rotation. After acknowledgement, the
+secret cannot be displayed again.
 
 ## Workspace boundary
 
@@ -201,24 +231,25 @@ subscription.
 
 Webhook actions write to the audit log:
 
-- `WEBHOOK_SUBSCRIPTION_CREATED`
-- `WEBHOOK_SUBSCRIPTION_DISABLED`
-- `WEBHOOK_SECRET_ROTATED`
-- `WEBHOOK_DELIVERY_FAILURE_THRESHOLD_REACHED`
+- `webhook_subscription_created`
+- `webhook_subscription_disabled`
+- `webhook_subscription_secret_rotated`
+- `webhook_subscription_secret_recovered`
+- `webhook_event_enqueued`
+- `webhook_delivery_dead_lettered`
+- `webhook_delivery_retried`
 
-Review at **Settings → Audit Log**.
+Review at **Admin Hub → Security & identity → Audit Log**.
 
 ## Patterns
 
 - **Booking → CRM** — subscribe to `booking.created` and create the
   matching record in your CRM. Use the booking's contact link to match
   or create the customer.
-- **Reminder fan-out** — subscribe to `reminder.due` to forward
-  reminders into your team's Slack/Teams channel.
-- **Sync-error alerting** — subscribe to `calendar.sync_failed` and
-  page on-call when a critical user's calendar disconnects.
-- **Pipeline updates** — subscribe to `task.completed` and progress a
-  related opportunity stage in your CRM.
+- **API contact mirror** — subscribe to `contact.created` and
+  `contact.updated` when your integration also writes contacts through API V1.
+  Reconcile periodically because the webhook is not a complete log of manual,
+  import, or booking-created contact changes.
 
 ## Out of scope (today)
 

@@ -1,7 +1,7 @@
 ---
 title: Compliance and audit exports
 sidebar_position: 10
-description: SIEM-friendly CSV and JSON exports of credentials and audit events. Enterprise tier.
+description: SIEM-friendly CSV exports of credential metadata and audit events. Enterprise tier.
 ---
 
 # Compliance and audit exports
@@ -21,101 +21,62 @@ For the lighter day-to-day audit-log read view, see
 | Free / Pro / Business | Not available |
 | **Enterprise** | Available |
 
-The 90-day audit-log read view is available on every plan; Enterprise
-adds the export surface plus longer audit retention (1, 3, or 7 years).
+The 90-day Audit Log list and JSON download are available on every plan;
+Enterprise adds the two compliance CSV downloads plus longer audit retention
+(1, 3, or 7 years).
 
 ## Where to find it
 
-Compliance exports live inside **Settings → Workspace Admin →
-Authentication Policy**, in the **Compliance** section near the bottom
-of the page. (Admin only + recent MFA.) The same page hosts the
+Compliance exports live inside **Admin Hub → Security & identity →
+Authentication Policy**, in the **Compliance** section near the bottom of
+the page (admin only + recent MFA). The same page hosts the
 WebAuthn attestation policy and the force re-enrollment flow — the
 three are kept together because they're driven by the same SOC 2 / ISO
 27001 evidence-collection workflow.
 
 You'll see:
 
-- A **Credentials export** action — current WebAuthn credentials by user
-  and state, as CSV or JSON.
-- An **Audit export** action — audit events over a chosen lookback
-  window (30, 90, or 365 days from the UI; longer via API), as CSV.
-- The audit-log id of recent compliance actions for traceability.
+- **Download credentials (CSV)** — current WebAuthn credential metadata by
+  user and state.
+- **Download audit log (CSV)** — workspace audit events over a 30-, 90-, or
+  365-day lookback selected in the UI.
 
-Both surfaces support CSV; the underlying API (below) also supports
-JSON output for richer ingestion.
+The current customer UI exports CSV. It does not expose a scheduled pull or a
+customer-facing JSON endpoint.
 
 ## Credentials export
 
-Pulls the current WebAuthn credential roster — who has a credential,
-what type, and its state. Useful for:
+Pulls current WebAuthn credential records, including disabled records. Users
+with no WebAuthn credential do not appear, and roles and TOTP state are not part
+of this file. It is useful for:
 
-- Confirming all admins are MFA-enrolled.
+- Reviewing the WebAuthn credentials that exist in the workspace.
 - Verifying force-reenroll campaigns took effect.
 - Auditor-friendly proof of credential coverage.
 
-```
-GET /api/admin/compliance/credentials.csv
-GET /api/admin/compliance/credentials.json
-```
-
-Columns are stable across releases — auditors and SIEM pipelines may
-parse by position. New columns are appended; existing columns don't
-move.
+The stable columns are `userEmail`, `name`, `aaguid`, `attestationFormat`,
+`isDiscoverable`, `transports`, `createdAt`, `lastUsedAt`, and `disabledAt`.
+Formula-like cells are neutralized for spreadsheet safety.
 
 ## Audit export
 
-Pulls audit-log entries within a time window with optional action
-filtering. Designed for SIEM ingestion.
+Downloads workspace audit-log entries within the selected time window for
+review or downstream ingestion.
 
-```
-GET /api/admin/compliance/audit.csv
-GET /api/admin/compliance/audit.json
-```
+### Time range
 
-### Time-range query
+Choose 30, 90, or 365 days in the export controls. The default is 90 days.
 
-| Parameter | Behavior |
-|---|---|
-| `?days=N` | Default 90. Pulls entries from the past N days. |
-| `?since=ISO-8601` | Pulls entries since the given timestamp. |
+The selector requests that lookback, while available rows also depend on the
+workspace's physical retention policy (default 1 year on Enterprise;
+configurable to 3 or 7). Physical purge runs asynchronously in bounded daily
+batches, and this compliance export does not yet add a separate hard read-time
+clamp during a retention-reduction purge interval.
 
-The time window is clamped to your workspace's audit retention setting
-(default 1 year on Enterprise; configurable to 3 or 7).
-
-### Action filter
-
-```
-?actions=A,B,C
-```
-
-Comma-separated action types. Useful when you want only `MFA_*`,
-`SAML_*`, `INVITATION_*`, etc.
-
-### Output shape
-
-CSV uses a stable column order via `csv-stringify`. The JSON shape:
-
-```json
-{
-  "generatedAt": "2026-05-10T16:00:00Z",
-  "workspaceSlug": "your-slug",
-  "count": 142,
-  "entries": [
-    {
-      "id": "...",
-      "action": "MFA_ENROLLMENT_COMPLETED",
-      "actor": { "id": "...", "email": "..." },
-      "target": { ... },
-      "timestamp": "...",
-      "ip": "...",
-      "metadata": { ... }
-    }
-  ]
-}
-```
-
-`generatedAt` is the export-time stamp, not the entry-time stamp.
-`workspaceSlug` confirms the export's tenant boundary.
+The CSV includes stable workspace-scoped fields suitable for a compliance
+packet or import into a SIEM, is newest-first, and returns at most 50,000
+matching rows. Review the downloaded header row before wiring a downstream
+parser, and retain the file according to your own evidence policy.
 
 ## Workspace boundary
 
@@ -123,59 +84,49 @@ System-level audit rows (events without a `workspaceId`) are
 **intentionally excluded** from workspace exports. Only events scoped
 to your workspace leave the tenant boundary.
 
-If you need cross-tenant or platform-wide audit reporting, contact
-[support@calkeep.com](mailto:support@calkeep.com) — that's a
-support-mediated request, not a self-serve export.
+Cross-workspace and platform-wide exports are not available to workspace
+customers.
 
 ## Step-up reauthentication
 
-Compliance exports require **recent MFA** — your last MFA verification
-must be within the past 5 minutes. If it's older, CalKeep prompts for
-TOTP or WebAuthn before letting the export run.
+Compliance exports require a verified email, an enrolled factor, and **recent
+MFA**. If the verification is stale, CalKeep prompts for TOTP or WebAuthn before
+letting the export run.
 
 This is consistent with other sensitive admin actions (IP allowlist
 edits, force re-enrollment, revoking another user's MFA).
 
-## Telemetry
-
-Each export emits a telemetry event:
-
-- `auth.compliance.credentials-export` (with format + count).
-- `auth.compliance.audit-export` (with format + count + filters).
-
-This appears in the audit log itself as well, so an export of audit
-entries always includes the export action that ran.
-
 ## SIEM ingestion patterns
 
-Common patterns customers use:
+The current UI is a deliberate download surface rather than a scheduled feed.
+After an authorized admin downloads a CSV, common internal handling patterns
+include:
 
-- **Splunk** — pull `audit.csv` daily on a cron, drop into a forwarder
-  watch directory.
-- **Sumo Logic** — `audit.json` daily, ingested via the HTTP source.
-- **Datadog Cloud SIEM** — `audit.json` via custom log pipeline.
-- **Microsoft Sentinel** — `audit.csv` into a storage account, read by
-  the Log Analytics agent.
+- place the audit CSV in a controlled Splunk forwarder directory;
+- import the CSV through a Sumo Logic or Datadog ingestion workflow; or
+- store the CSV in an approved Azure Storage location for Microsoft Sentinel.
 
-The stable column order is the contract; if you build automation against
-specific column positions, that's supported. New columns will be
-appended after existing ones, never inserted.
+CalKeep does not upload the export or configure those systems for you. These
+are interactive admin-session downloads, not unattended API-token or cron
+exports. Successful authorized downloads write the audit action
+`compliance_export`.
 
 ## Force re-enrollment
 
 If you mass-revoke WebAuthn credentials (because a model is being
 deprecated, or because the credential roster needs a reset under a
 stricter policy), the [force re-enrollment](/admin/security#enterprise-tier-policies)
-flow under **Settings → Workspace Admin → Authentication Policy →
-Force re-enrollment** drives that.
+flow under **Admin Hub → Security & identity → Authentication Policy → Force
+re-enrollment** drives that. Before applying it, CalKeep shows the exact users
+and credentials that the chosen policy would revoke so the admin can review
+the affected population.
 
 After force re-enrollment, a fresh credentials export confirms the new
 roster. Useful as proof for an auditor that the campaign closed.
 
 ## Out of scope (today)
 
-- Aggregated cross-workspace exports (would require platform-superadmin
-  authority — not exposed to customers).
+- Aggregated cross-workspace exports.
 - Real-time event streaming via SCIM-event-style webhooks. Use
   [webhooks](/admin/webhooks) for real-time business events; compliance
   exports remain pull-based.

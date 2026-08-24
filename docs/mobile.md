@@ -49,7 +49,8 @@ Mobile devices respect the same auth model as web:
   uses the platform authenticator (Touch ID, Face ID, Android biometric)
   or a paired hardware key.
 - **Trusted devices** — a 30-day trusted-device token can be issued per
-  device. Revoke any device at **Settings → Security → Trusted devices**.
+  device. Review or revoke trusted devices in **Personal Settings → Password &
+  security**.
 - **IP allowlist** (Enterprise) — applies to mobile too. If you're on a
   cellular network outside an allowed range, the app blocks API calls
   with a clear error.
@@ -71,7 +72,7 @@ Push is used for:
 - Task and contact reminders (when the channel is set to push).
 - Sync errors (so you can reconnect without checking the web).
 
-You can mute channels at **Settings → Notifications**.
+You can mute channels in **Personal Settings → Appearance & notifications**.
 
 ## What's web-only
 
@@ -81,9 +82,10 @@ they're rarely-used and benefit from a wider screen:
 - **Branding configuration** (logo upload, color pickers, custom CSS).
 - **SAML SSO setup** ([SAML 2.0 SSO](/admin/saml)).
 - **SCIM token issuance** ([SCIM provisioning](/admin/scim)).
-- **Audit log review** with filters and CSV export.
+- **Audit log review** with filters and JSON export.
 - **Compliance exports** ([Compliance and audit exports](/admin/compliance)).
-- **API token issuance** ([API tokens](/admin/api)).
+- **API token inventory and revocation**; new issuance is temporarily paused
+  ([API tokens](/admin/api)).
 - **Webhook subscription management** ([Webhooks](/admin/webhooks)).
 
 You can still view audit summaries and notification settings on mobile;
