@@ -1,0 +1,60 @@
+name: Algolia search keep-alive
+
+# Algolia pauses a DocSearch application after ~34 days without a search request
+# (warning email at 27 days: "Your Algolia application will be paused soon").
+# docs.calkeep.com has no steady stream of human searches yet, so this job issues
+# one real query a week against the live index using the public search-only key
+# already committed in docusaurus.config.ts. It doubles as a monitor: if the app
+# is paused, the key is revoked, or the index is empty, the run fails and the
+# Owner sees it in the Actions tab and by email.
+
+on:
+  schedule:
+    - cron: "17 9 * * 1"   # Mondays 09:17 UTC — weekly is well inside the ~34-day window
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  query:
+    name: One search against the live index
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read app id, search-only key and index from docusaurus.config.ts
+        id: cfg
+        run: |
+          set -euo pipefail
+          APP_ID=$(grep -oP "appId:\s*'\K[^']+" docusaurus.config.ts)
+          API_KEY=$(grep -oP "apiKey:\s*'\K[^']+" docusaurus.config.ts)
+          INDEX=$(grep -oP "indexName:\s*'\K[^']+" docusaurus.config.ts)
+          test -n "$APP_ID" && test -n "$API_KEY" && test -n "$INDEX"
+          echo "app_id=$APP_ID" >> "$GITHUB_OUTPUT"
+          echo "api_key=$API_KEY" >> "$GITHUB_OUTPUT"
+          echo "index=$INDEX" >> "$GITHUB_OUTPUT"
+
+      - name: Search and require at least one hit
+        env:
+          APP_ID: ${{ steps.cfg.outputs.app_id }}
+          API_KEY: ${{ steps.cfg.outputs.api_key }}
+          INDEX: ${{ steps.cfg.outputs.index }}
+        run: |
+          set -euo pipefail
+          ENC_INDEX=$(printf '%s' "$INDEX" | sed 's/ /%20/g')
+          RESP=$(curl -sS --max-time 20 -X POST \
+            "https://${APP_ID}-dsn.algolia.net/1/indexes/${ENC_INDEX}/query" \
+            -H "X-Algolia-Application-Id: ${APP_ID}" \
+            -H "X-Algolia-API-Key: ${API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data '{"params":"query=calendar&hitsPerPage=1&attributesToRetrieve=url"}')
+          HITS=$(printf '%s' "$RESP" | jq -r '.nbHits // 0')
+          echo "nbHits=$HITS"
+          if [ "$HITS" -lt 1 ]; then
+            echo "::error::Algolia search returned no hits — application paused, key revoked, or index empty. Response: $(printf '%s' "$RESP" | head -c 400)"
+            exit 1
+          fi
+          echo "### Algolia keep-alive" >> "$GITHUB_STEP_SUMMARY"
+          echo "- app: \`$APP_ID\` · index: \`$INDEX\` · nbHits for \"calendar\": **$HITS**" >> "$GITHUB_STEP_SUMMARY"
