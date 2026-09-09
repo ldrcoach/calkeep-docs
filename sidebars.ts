@@ -53,6 +53,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'faq',
+    'release-posture',
   ],
 };
 
