@@ -1,0 +1,10 @@
+# .ldrc.yml — which LDRC platform assets this repository consumes.
+# ASSET-CONTRACT.md in ldrcoach/.github is the shape. Tier confirmed by the Owner 2026-10-09.
+tier: production      # CalKeep's public documentation; CalKeep is live in Microsoft's marketplace
+assets:
+  cicd: none              # reason: own workflows; not yet migrated to the shared ldrcoach/.github CI
+  brand: none             # reason: Docusaurus site styled for CalKeep; @ldrcoach/brand is not a dependency
+  auth: n/a               # public docs, no login surface
+deploy:
+  status: github-pages
+  reason:
