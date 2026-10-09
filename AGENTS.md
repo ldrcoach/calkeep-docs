@@ -27,7 +27,7 @@ Merging deploys: every push to `main` runs `.github/workflows/deploy.yml`, which
 
 ## Production tier
 
-production — public, customer-facing documentation for CalKeep, a flagship app live in Microsoft's marketplace. <!-- inferred: no .ldrc.yml -->
+production (confirmed by the Owner 2026-10-09; matches `.ldrc.yml`) — public, customer-facing documentation for CalKeep, a flagship app live in Microsoft's marketplace.
 A wrong page is publicly visible the moment it merges. <!-- inferred -->
 
 ## Never
